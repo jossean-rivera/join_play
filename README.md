@@ -1,6 +1,6 @@
 # join_play
 
-A new Flutter project.
+CSEN Final Project
 
 ## Getting Started
 
