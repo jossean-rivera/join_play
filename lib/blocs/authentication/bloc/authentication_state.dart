@@ -8,3 +8,4 @@ final class AuthenticationInitial extends AuthenticationState {}
 final class AuthenticationLoggedIn extends AuthenticationState {}
 
 final class AuthenticationLoggedOut extends AuthenticationState {}
+

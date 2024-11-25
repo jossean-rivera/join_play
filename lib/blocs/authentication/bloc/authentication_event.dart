@@ -5,4 +5,9 @@ sealed class AuthenticationEvent {}
 
 class AuthenticationLogoutEvent extends AuthenticationEvent {}
 
-class AuthenticationLoginEvent extends AuthenticationEvent {}
+class AuthenticationLoginSuccessEvent extends AuthenticationEvent {}
+
+class AuthenticationUserChangedEvent extends AuthenticationEvent {
+  final User? user;
+  AuthenticationUserChangedEvent(this.user);
+}
