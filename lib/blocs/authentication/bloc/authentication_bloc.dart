@@ -31,9 +31,15 @@ class AuthenticationBloc
       emit(AuthenticationSignUpState());
     });
 
-    // Handle event to show in up view
+    // Handle event to show sign in view
     on<AuthenticationSignInRequestEvent>((event, emit) {
-      emit(AuthenticationSignInState(event.email, event.password));
+      emit(AuthenticationSignInState(
+          email: event.email, password: event.password));
+    });
+
+    // Handle event to show forgot password view
+    on<AuthenticationForgotPasswordRequestEvent>((event, emit) {
+      emit(AuthenticationForgotPasswordState(event.email));
     });
 
     // Handle authentication changes
@@ -79,7 +85,8 @@ class AuthenticationBloc
   }
 
   /// Method used to register a new user on firebase for email authentication
-  Future<String?> emailSignUp(String name, String email, String password) async {
+  Future<String?> emailSignUp(
+      String name, String email, String password) async {
     try {
       UserCredential credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -95,6 +102,20 @@ class AuthenticationBloc
       }
     } catch (e) {
       return 'There was an internal error while trying to login, try again later.';
+    }
+  }
+
+  /// Calls forgot password flow in firebase auth
+  Future<String?> emailForgotPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      emit(AuthenticationSignInState(email: email));
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.code;
+    } catch (e) {
+      return e.toString();
     }
   }
 }

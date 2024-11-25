@@ -12,7 +12,12 @@ final class AuthenticationLoggedOut extends AuthenticationState {}
 final class AuthenticationSignUpState extends AuthenticationState {}
 
 final class AuthenticationSignInState extends AuthenticationState {
-  String? email;
-  String? password;
-  AuthenticationSignInState(this.email, this.password);
+  final String? email;
+  final String? password;
+  AuthenticationSignInState({this.email, this.password});
+}
+
+final class AuthenticationForgotPasswordState extends AuthenticationState {
+  final String? email;
+  AuthenticationForgotPasswordState(this.email);
 }

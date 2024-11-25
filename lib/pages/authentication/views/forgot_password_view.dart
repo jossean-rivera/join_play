@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
 
-class SignInView extends StatefulWidget {
-  final Future<String?> Function(String email, String password)
-      loginSubmitCallback;
+class ForgotPasswordView extends StatefulWidget {
+  final Future<String?> Function(String email)
+      emailForgotPasswordCallback;
 
-  final Function() signUpRequestCallback;
-  final Function(String? email) forgotPasswordRequestCallback;
+  final Function() signInRequestCallback;
 
   final String? initEmail;
-  final String? initPassword;
 
-  const SignInView({
+  const ForgotPasswordView({
     super.key,
     this.initEmail = '',
-    this.initPassword = '',
-    required this.loginSubmitCallback,
-    required this.signUpRequestCallback,
-    required this.forgotPasswordRequestCallback,
+    required this.emailForgotPasswordCallback,
+    required this.signInRequestCallback,
   });
 
   @override
-  State<SignInView> createState() => _SignInViewState();
+  State<ForgotPasswordView> createState() => _ForgotPasswordView();
 }
 
-class _SignInViewState extends State<SignInView> {
+class _ForgotPasswordView extends State<ForgotPasswordView> {
   late TextEditingController emailController;
-  late TextEditingController passwordController;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   String? errorMessage;
   bool isSubmitting = false;
@@ -35,11 +30,9 @@ class _SignInViewState extends State<SignInView> {
   void initState() {
     super.initState();
     emailController = TextEditingController(text: widget.initEmail);
-    passwordController = TextEditingController(text: widget.initPassword);
 
     // Clear error on typing
     emailController.addListener(_clearError);
-    passwordController.addListener(_clearError);
   }
 
   /// Updates the state to remove the error label from the UI
@@ -67,11 +60,10 @@ class _SignInViewState extends State<SignInView> {
 
       // Get email and password from the form
       final email = emailController.text.trim();
-      final password = passwordController.text.trim();
 
       try {
         // Invoke login callback
-        final error = await widget.loginSubmitCallback(email, password);
+        final error = await widget.emailForgotPasswordCallback(email);
 
         // If there's a login, error, then display the error label
         if (error != null) {
@@ -94,7 +86,6 @@ class _SignInViewState extends State<SignInView> {
   @override
   void dispose() {
     emailController.dispose();
-    passwordController.dispose();
     super.dispose();
   }
 
@@ -102,7 +93,7 @@ class _SignInViewState extends State<SignInView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text("Reset Password"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -153,26 +144,6 @@ class _SignInViewState extends State<SignInView> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-
-              // Password text field
-              TextFormField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your password";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
-                  return null;
-                },
-              ),
               const SizedBox(height: 32),
 
               // Login button
@@ -187,26 +158,14 @@ class _SignInViewState extends State<SignInView> {
                       )
                     :
                     // Display log in text in button when not submitting
-                    const Text("Log In"),
+                    const Text("Reset"),
               ),
               Row(
                 children: [
-                  const Text("Don't have an account?"),
+                  const Text("Changed your mind?"),
                   TextButton(
-                    onPressed: widget.signUpRequestCallback,
-                    child: const Text("Sign Up"),
-                  )
-                ],
-              ),
-              Row(
-                children: [
-                  const Text("Forgot password?"),
-                  TextButton(
-                    onPressed: () {
-                      String email = emailController.text.trim();
-                      widget.forgotPasswordRequestCallback(email);
-                    },
-                    child: const Text("Reset"),
+                    onPressed: widget.signInRequestCallback,
+                    child: const Text("Cancel"),
                   )
                 ],
               ),
