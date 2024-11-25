@@ -28,7 +28,8 @@ class AuthenticationBloc
 
     // Handle event to show sign up view
     on<AuthenticationSignUpRequestEvent>((event, emit) {
-      emit(AuthenticationSignUpState());
+      emit(AuthenticationSignUpState(
+          email: event.email, password: event.password));
     });
 
     // Handle event to show sign in view
@@ -109,7 +110,6 @@ class AuthenticationBloc
   Future<String?> emailForgotPassword(String email) async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-
       emit(AuthenticationSignInState(email: email));
       return null;
     } on FirebaseAuthException catch (e) {

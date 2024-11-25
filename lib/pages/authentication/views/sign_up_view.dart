@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 class SignUpView extends StatefulWidget {
   const SignUpView(
       {super.key,
+      this.initEmail,
+      this.initPassword,
       required this.emailSignUpCallback,
       required this.signInRequestCallback});
   final Future<String?> Function(String name, String email, String password)
       emailSignUpCallback;
   final void Function(String? email, String? password) signInRequestCallback;
+
+  final String? initEmail;
+  final String? initPassword;
 
   @override
   State<SignUpView> createState() => _SignUpViewState();
@@ -25,9 +30,11 @@ class _SignUpViewState extends State<SignUpView> {
   @override
   void initState() {
     super.initState();
+
+    // Pass initial values
     nameController = TextEditingController();
-    emailController = TextEditingController();
-    passwordController = TextEditingController();
+    emailController = TextEditingController(text: widget.initEmail);
+    passwordController = TextEditingController(text: widget.initPassword);
 
     // Clear error on typing
     emailController.addListener(_clearError);

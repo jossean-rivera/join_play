@@ -16,8 +16,10 @@ class LoginPage extends StatelessWidget {
         bloc: bloc,
         builder: (BuildContext context, AuthenticationState state) {
           switch (state) {
-            case AuthenticationSignUpState _:
+            case AuthenticationSignUpState signUpState:
               return SignUpView(
+                  initEmail: signUpState.email,
+                  initPassword: signUpState.password,
                   emailSignUpCallback: bloc.emailSignUp,
                   signInRequestCallback: (email, password) => bloc.add(
                         AuthenticationSignInRequestEvent(
@@ -35,8 +37,9 @@ class LoginPage extends StatelessWidget {
                 initEmail: signInState.email,
                 initPassword: signInState.password,
                 loginSubmitCallback: bloc.loginSubmit,
-                signUpRequestCallback: () =>
-                    bloc.add(AuthenticationSignUpRequestEvent()),
+                signUpRequestCallback: (initEmail, initPassword) => bloc.add(
+                    AuthenticationSignUpRequestEvent(
+                        email: initEmail, password: initPassword)),
                 forgotPasswordRequestCallback: (email) =>
                     bloc.add(AuthenticationForgotPasswordRequestEvent(email)),
               );
@@ -44,8 +47,9 @@ class LoginPage extends StatelessWidget {
             default:
               return SignInView(
                 loginSubmitCallback: bloc.loginSubmit,
-                signUpRequestCallback: () =>
-                    bloc.add(AuthenticationSignUpRequestEvent()),
+                signUpRequestCallback: (initEmail, initPassword) => bloc.add(
+                    AuthenticationSignUpRequestEvent(
+                        email: initEmail, password: initPassword)),
                 forgotPasswordRequestCallback: (email) =>
                     bloc.add(AuthenticationForgotPasswordRequestEvent(email)),
               );

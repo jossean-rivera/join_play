@@ -6,7 +6,12 @@ sealed class AuthenticationEvent {}
 class AuthenticationLogoutEvent extends AuthenticationEvent {}
 
 /// Event for when user requests the sign up page
-final class AuthenticationSignUpRequestEvent extends AuthenticationEvent {}
+final class AuthenticationSignUpRequestEvent extends AuthenticationEvent {
+  final String? email;
+  final String? password;
+
+  AuthenticationSignUpRequestEvent({this.email, this.password});
+}
 
 /// Event for when the user requests the sign in page
 final class AuthenticationSignInRequestEvent extends AuthenticationEvent {

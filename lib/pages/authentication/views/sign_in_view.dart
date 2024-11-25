@@ -4,8 +4,8 @@ class SignInView extends StatefulWidget {
   final Future<String?> Function(String email, String password)
       loginSubmitCallback;
 
-  final Function() signUpRequestCallback;
-  final Function(String? email) forgotPasswordRequestCallback;
+  final Function(String initEmail, String? initPassword) signUpRequestCallback;
+  final Function(String? initEmail) forgotPasswordRequestCallback;
 
   final String? initEmail;
   final String? initPassword;
@@ -193,7 +193,11 @@ class _SignInViewState extends State<SignInView> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: widget.signUpRequestCallback,
+                    onPressed: () {
+                      String email = emailController.text.trim();
+                      String password = passwordController.text.trim();
+                      widget.signUpRequestCallback(email, password);
+                    },
                     child: const Text("Sign Up"),
                   )
                 ],
