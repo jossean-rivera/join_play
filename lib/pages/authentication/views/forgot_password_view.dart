@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ForgotPasswordView extends StatefulWidget {
-  final Future<String?> Function(String email)
-      emailForgotPasswordCallback;
+  final Future<String?> Function(String email) emailForgotPasswordCallback;
 
   final Function(String? initEmail) signInRequestCallback;
 
@@ -47,8 +46,8 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
     }
   }
 
-  /// Method to invoke the loging callback and update the UI accordingly
-  Future<void> _handleLogin() async {
+  /// Method to invoke the forgot password callback and update the UI accordingly
+  Future<void> _handleForgotPaassword() async {
     if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;
@@ -58,27 +57,44 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
         crossFadeState = CrossFadeState.showFirst;
       });
 
-      // Get email and password from the form
       final email = emailController.text.trim();
 
       try {
-        // Invoke login callback
+        // Invoke forgot password callback
         final error = await widget.emailForgotPasswordCallback(email);
 
-        // If there's a login, error, then display the error label
         if (error != null) {
-          setState(() {
-            // Set the text of the error label
-            errorMessage = error;
+          if (mounted) {
+            setState(() {
+              // Set the text of the error label
+              errorMessage = error;
 
-            // Use animated cross fade to show the error label
-            crossFadeState = CrossFadeState.showSecond;
-          });
+              // Use animated cross fade to show the error label
+              crossFadeState = CrossFadeState.showSecond;
+            });
+          }
+        } else {
+          if (mounted) {
+            await showDialog(
+              context: context,
+              builder: (context) {
+                return const AlertDialog(
+                  title: Text("Password Reset"),
+                  content: Text(
+                    "Please check your email for a password reset link. "
+                    "Once you set a new password, you can log in on the Sign In screen.",
+                  ),
+                );
+              },
+            );
+          }
         }
       } finally {
-        setState(() {
-          isSubmitting = false;
-        });
+        if (mounted) {
+          setState(() {
+            isSubmitting = false;
+          });
+        }
       }
     }
   }
@@ -148,7 +164,7 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
 
               // Login button
               FilledButton(
-                onPressed: isSubmitting ? null : _handleLogin,
+                onPressed: isSubmitting ? null : _handleForgotPaassword,
                 child: isSubmitting
                     ?
                     // Show loading icon when submitting
