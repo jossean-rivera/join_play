@@ -16,9 +16,6 @@ class AuthenticationBloc
     on<AuthenticationEvent>((event, emit) {
       // TODO: implement event handler
     });
-    on<AuthenticationLoginSuccessEvent>((event, emit) {
-      _login(emit);
-    });
     on<AuthenticationLogoutEvent>((event, emit) async {
       try {
         await FirebaseAuth.instance.signOut();
@@ -26,32 +23,34 @@ class AuthenticationBloc
         // Ignore exception
       }
 
-      _logout(emit);
+      emit(AuthenticationLoggedOut());
+    });
+
+    // Handle event to show sign up view
+    on<AuthenticationSignUpRequestEvent>((event, emit) {
+      emit(AuthenticationSignUpState());
+    });
+
+    // Handle event to show in up view
+    on<AuthenticationSignInRequestEvent>((event, emit) {
+      emit(AuthenticationSignInState(event.email, event.password));
     });
 
     // Handle authentication changes
     on<AuthenticationUserChangedEvent>((event, emit) {
       if (event.user == null) {
         // User is signed out
-        _logout(emit);
+        emit(AuthenticationLoggedIn());
       } else {
         // User is signed in
-        _login(emit);
+        emit(AuthenticationLoggedOut());
       }
     });
 
-    // Raise event when the auth state changes
+    // Emit our own auth state when the firebase auth state changes
     _firebaseAuth.authStateChanges().listen((User? user) {
       add(AuthenticationUserChangedEvent(user));
     });
-  }
-
-  void _login(Emitter<AuthenticationState> emit) {
-    emit(AuthenticationLoggedIn());
-  }
-
-  void _logout(Emitter<AuthenticationState> emit) {
-    emit(AuthenticationLoggedOut());
   }
 
   /// Method to loging the user with email/password authentication on Firebase.
@@ -71,6 +70,26 @@ class AuthenticationBloc
         return 'No user found for that email.';
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         return 'Incorrect username or password.';
+      } else {
+        return e.message ?? e.code;
+      }
+    } catch (e) {
+      return 'There was an internal error while trying to login, try again later.';
+    }
+  }
+
+  /// Method used to register a new user on firebase for email authentication
+  Future<String?> emailSignUp(String name, String email, String password) async {
+    try {
+      UserCredential credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      emit(AuthenticationLoggedIn());
+      return null;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        return 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        return 'The account already exists for that email.';
       } else {
         return e.message ?? e.code;
       }

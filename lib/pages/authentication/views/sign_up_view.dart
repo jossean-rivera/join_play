@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
 
-class SignInView extends StatefulWidget {
-  final Future<String?> Function(String email, String password)
-      loginSubmitCallback;
-
-  final Function() signUpRequestCallback;
-
-  final String? initEmail;
-  final String? initPassword;
-
-  const SignInView({
-    super.key,
-    this.initEmail = '',
-    this.initPassword = '',
-    required this.loginSubmitCallback,
-    required this.signUpRequestCallback,
-  });
+class SignUpView extends StatefulWidget {
+  const SignUpView(
+      {super.key,
+      required this.emailSignUpCallback,
+      required this.signInRequestCallback});
+  final Future<String?> Function(String name, String email, String password)
+      emailSignUpCallback;
+  final void Function(String? email, String? password) signInRequestCallback;
 
   @override
-  _SignInViewState createState() => _SignInViewState();
+  State<SignUpView> createState() => _SignUpViewState();
 }
 
-class _SignInViewState extends State<SignInView> {
+class _SignUpViewState extends State<SignUpView> {
+  late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController passwordController;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -32,8 +25,9 @@ class _SignInViewState extends State<SignInView> {
   @override
   void initState() {
     super.initState();
-    emailController = TextEditingController(text: widget.initEmail);
-    passwordController = TextEditingController(text: widget.initPassword);
+    nameController = TextEditingController();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
 
     // Clear error on typing
     emailController.addListener(_clearError);
@@ -52,8 +46,8 @@ class _SignInViewState extends State<SignInView> {
     }
   }
 
-  /// Method to invoke the loging callback and update the UI accordingly
-  Future<void> _handleLogin() async {
+  /// Method to invoke the sign up callback and update the UI accordingly
+  Future<void> _handleSignUp() async {
     if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;
@@ -64,14 +58,15 @@ class _SignInViewState extends State<SignInView> {
       });
 
       // Get email and password from the form
+      final name = nameController.text.trim();
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
 
       try {
-        // Invoke login callback
-        final error = await widget.loginSubmitCallback(email, password);
+        // Invoke sign up callback
+        final error = await widget.emailSignUpCallback(name, email, password);
 
-        // If there's a login, error, then display the error label
+        // If there's a sign up, error, then display the error label
         if (error != null) {
           setState(() {
             // Set the text of the error label
@@ -91,6 +86,7 @@ class _SignInViewState extends State<SignInView> {
 
   @override
   void dispose() {
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -100,7 +96,7 @@ class _SignInViewState extends State<SignInView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text("Sign Up"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -132,6 +128,28 @@ class _SignInViewState extends State<SignInView> {
                   ),
                 ),
               ),
+              // Name text field
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.text,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your name";
+                  }
+                  final emailRegex = RegExp(r'\w+');
+                  if (!emailRegex.hasMatch(value)) {
+                    return "Please only use alphanumeric characters";
+                  }
+                  return null;
+                },
+              ),
+              // Add space
+              const SizedBox(height: 16),
+
               // Email text field
               TextFormField(
                 controller: emailController,
@@ -151,6 +169,8 @@ class _SignInViewState extends State<SignInView> {
                   return null;
                 },
               ),
+
+              // Add space
               const SizedBox(height: 16),
 
               // Password text field
@@ -173,9 +193,9 @@ class _SignInViewState extends State<SignInView> {
               ),
               const SizedBox(height: 32),
 
-              // Login button
+              // Sign Up button
               FilledButton(
-                onPressed: isSubmitting ? null : _handleLogin,
+                onPressed: isSubmitting ? null : _handleSignUp,
                 child: isSubmitting
                     ?
                     // Show loading icon when submitting
@@ -184,15 +204,19 @@ class _SignInViewState extends State<SignInView> {
                         strokeWidth: 2.0,
                       )
                     :
-                    // Display log in text in button when not submitting
-                    const Text("Log In"),
+                    // Display sign up text in button when not submitting
+                    const Text("Sign Up"),
               ),
               Row(
                 children: [
-                  const Text("Don't have an account?"),
+                  const Text("Already have an account?"),
                   TextButton(
-                    onPressed: widget.signUpRequestCallback,
-                    child: const Text("Sign Up"),
+                    onPressed: () {
+                      String? email = emailController.text.trim();
+                      String? password = passwordController.text.trim();
+                      widget.signInRequestCallback(email, password);
+                    },
+                    child: const Text("Sign In"),
                   )
                 ],
               ),
