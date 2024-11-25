@@ -29,8 +29,8 @@ class LoginPage extends StatelessWidget {
               return ForgotPasswordView(
                 initEmail: forgotPasswordState.email,
                 emailForgotPasswordCallback: bloc.emailForgotPassword,
-                signInRequestCallback: () =>
-                    bloc.add(AuthenticationSignInRequestEvent()),
+                signInRequestCallback: (initEmail) =>
+                    bloc.add(AuthenticationSignInRequestEvent(email: initEmail)),
               );
             case AuthenticationSignInState signInState:
               return SignInView(

@@ -4,7 +4,7 @@ class ForgotPasswordView extends StatefulWidget {
   final Future<String?> Function(String email)
       emailForgotPasswordCallback;
 
-  final Function() signInRequestCallback;
+  final Function(String? initEmail) signInRequestCallback;
 
   final String? initEmail;
 
@@ -164,7 +164,10 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
                 children: [
                   const Text("Changed your mind?"),
                   TextButton(
-                    onPressed: widget.signInRequestCallback,
+                    onPressed: () {
+                      String email = emailController.text.trim();
+                      widget.signInRequestCallback(email);
+                    },
                     child: const Text("Cancel"),
                   )
                 ],
