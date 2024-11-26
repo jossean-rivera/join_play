@@ -7,6 +7,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:550587463448:android:0960ee396ba419bd59106d",
+        "android_client_info": {
+          "package_name": "com.example.hobbies"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "550587463448-6sapvllph5imnpe07md6ir7rkmqhenvd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqpF6eUp2TgGS5y2B4A54TSlrj-E9_mH8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550587463448-6sapvllph5imnpe07md6ir7rkmqhenvd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "550587463448-3kgcqp493debesg7eo4gd0qe6v8mdtbj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hobbies"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:550587463448:android:434a20e1dbb5f09459106d",
         "android_client_info": {
           "package_name": "com.example.hobbies"

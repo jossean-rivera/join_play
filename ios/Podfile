@@ -31,6 +31,10 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  pod 'FirebaseFirestore', '~> 11.4.0'
+  pod 'FirebaseAuth', '~> 11.4.0'
+  pod 'FirebaseCore', '~> 11.4.0'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths

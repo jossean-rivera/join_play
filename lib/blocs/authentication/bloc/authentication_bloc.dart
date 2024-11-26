@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:join_play/models/sport_user.dart';
+import 'package:join_play/repositories/user_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'authentication_event.dart';
@@ -11,8 +13,13 @@ part 'authentication_state.dart';
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   final FirebaseAuth _firebaseAuth;
+  final UserRepository _userRepository;
 
-  AuthenticationBloc(this._firebaseAuth) : super(AuthenticationInitial()) {
+  /// User data for the sports application
+  SportUser? sportUser;
+
+  AuthenticationBloc(this._firebaseAuth, this._userRepository)
+      : super(AuthenticationInitial()) {
     on<AuthenticationEvent>((event, emit) {
       // TODO: implement event handler
     });
@@ -22,7 +29,7 @@ class AuthenticationBloc
       } catch (e) {
         // Ignore exception
       }
-
+      sportUser = null;
       emit(AuthenticationLoggedOut());
     });
 
@@ -64,10 +71,19 @@ class AuthenticationBloc
   Future<String?> loginSubmit(String email, String password) async {
     try {
       // Send loging request to firebase email auth
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      if (credential.user?.uid != null) {
+        // Get the user data from firestore
+        SportUser? user =
+            await _userRepository.getUser(credential.user?.uid ?? '');
+        if (user != null) {
+          sportUser = user;
+        }
+      }
 
       // Login was successful
       emit(AuthenticationLoggedIn());
@@ -89,9 +105,19 @@ class AuthenticationBloc
   Future<String?> emailSignUp(
       String name, String email, String password) async {
     try {
-      UserCredential credential = await FirebaseAuth.instance
+      UserCredential credential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
-      emit(AuthenticationLoggedIn());
+
+      if (credential.user?.uid != null) {
+        SportUser user = SportUser(
+            uuid: credential.user?.uid ?? '', name: name, email: email);
+        _userRepository.addUser(user);
+        sportUser = user;
+        emit(AuthenticationLoggedIn());
+      } else {
+        await _firebaseAuth.currentUser?.delete();
+        return 'There was an internal error while trying to login, try again later.';
+      }
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
