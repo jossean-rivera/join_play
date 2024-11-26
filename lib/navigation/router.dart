@@ -4,7 +4,7 @@ import 'package:join_play/pages/sport_details_page.dart';
 import '../pages/history_page.dart';
 import '../pages/my_games_page.dart';
 import '../blocs/authentication/bloc/authentication_bloc.dart';
-import '../pages/login_page.dart';
+import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/sports_page.dart';
 import '../utilities/stream_to_listenable.dart';
