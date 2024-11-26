@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/authentication/bloc/authentication_bloc.dart';
 import 'navigation/router.dart';
 import 'firebase_options.dart';
+import 'repositories/firebase_user_repository.dart';
+import 'repositories/user_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,19 +22,34 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final authenticationBloc = AuthenticationBloc(FirebaseAuth.instance);
-    return BlocProvider(
-        create: (context) => authenticationBloc,
-        child: MaterialApp.router(
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<UserRepository>(
+          create: (context) => FirestoreUserRepository(FirebaseFirestore.instance),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthenticationBloc(
+                FirebaseAuth.instance, context.read<UserRepository>()),
           ),
-          routerConfig: createRouter(authenticationBloc),
-        ));
+        ],
+        child: Builder(
+          builder: (context) {
+            return MaterialApp.router(
+              title: 'Flutter Demo',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                useMaterial3: true,
+              ),
+              routerConfig: createRouter(context.read<AuthenticationBloc>()),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
