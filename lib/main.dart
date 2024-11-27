@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_installations/firebase_installations.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 
 import 'blocs/authentication/bloc/authentication_bloc.dart';
 import 'navigation/router.dart';
