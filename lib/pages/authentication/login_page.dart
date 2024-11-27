@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:join_play/pages/authentication/views/forgot_password_view.dart';
+import 'package:join_play/pages/authentication/views/initial_loading_view.dart';
 
 import '../../blocs/authentication/bloc/authentication_bloc.dart';
 import 'views/sign_in_view.dart';
@@ -16,6 +17,8 @@ class LoginPage extends StatelessWidget {
         bloc: bloc,
         builder: (BuildContext context, AuthenticationState state) {
           switch (state) {
+            case AuthenticationInitial _:
+              return const InitalLoadingView();
             case AuthenticationSignUpState signUpState:
               return SignUpView(
                   initEmail: signUpState.email,
@@ -29,8 +32,8 @@ class LoginPage extends StatelessWidget {
               return ForgotPasswordView(
                 initEmail: forgotPasswordState.email,
                 emailForgotPasswordCallback: bloc.emailForgotPassword,
-                signInRequestCallback: (initEmail) =>
-                    bloc.add(AuthenticationSignInRequestEvent(email: initEmail)),
+                signInRequestCallback: (initEmail) => bloc
+                    .add(AuthenticationSignInRequestEvent(email: initEmail)),
               );
             case AuthenticationSignInState signInState:
               return SignInView(
@@ -43,7 +46,6 @@ class LoginPage extends StatelessWidget {
                 forgotPasswordRequestCallback: (email) =>
                     bloc.add(AuthenticationForgotPasswordRequestEvent(email)),
               );
-            case AuthenticationInitial _:
             default:
               return SignInView(
                 loginSubmitCallback: bloc.loginSubmit,

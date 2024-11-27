@@ -21,6 +21,12 @@ final class AuthenticationSignInRequestEvent extends AuthenticationEvent {
   AuthenticationSignInRequestEvent({this.email, this.password});
 }
 
+/// Event raised when there's a successful login by the user
+final class AuthenticationLoggedInEvent extends AuthenticationEvent {
+  final SportUser loggedInUser;
+  AuthenticationLoggedInEvent(this.loggedInUser);
+}
+
 /// Event raised when the user in firebase changes
 final class AuthenticationUserChangedEvent extends AuthenticationEvent {
   final User? user;

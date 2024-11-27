@@ -18,9 +18,15 @@ class AuthenticationBloc
 
   AuthenticationBloc(this._firebaseAuth, this._userRepository)
       : super(AuthenticationInitial()) {
-    on<AuthenticationEvent>((event, emit) {
-      // TODO: implement event handler
+
+    // Handle the successful login event
+    on<AuthenticationLoggedInEvent>((event, emit) {
+      // Save a reference of the user data in the bloc
+      sportUser = event.loggedInUser;
+      emit(AuthenticationLoggedIn(event.loggedInUser));
     });
+
+    // Handle the logout event
     on<AuthenticationLogoutEvent>((event, emit) async {
       try {
         await FirebaseAuth.instance.signOut();
@@ -56,8 +62,7 @@ class AuthenticationBloc
             await _userRepository.getUser(event.user?.uid ?? '');
 
         if (sportLoggedInUser != null) {
-          sportUser = sportLoggedInUser;
-          emit(AuthenticationLoggedIn());
+          add(AuthenticationLoggedInEvent(sportLoggedInUser));
           return;
         }
       }
@@ -86,16 +91,21 @@ class AuthenticationBloc
         SportUser? user =
             await _userRepository.getUser(credential.user?.uid ?? '');
         if (user != null) {
-          sportUser = user;
+          // Login was successful
+          add(AuthenticationLoggedInEvent(user));
+          return null;
+        } else {
+          // We have no user data associated with this user
+          _firebaseAuth.currentUser?.delete();
+          return 'No user data found for this email. Please register again.';
         }
       }
 
-      // Login was successful
-      emit(AuthenticationLoggedIn());
-      return null;
+      // Something else is wrong
+      return 'There was an internal error while trying to login, try again later.';
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        return 'No user found for that email.';
+        return 'No user found for this email.';
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         return 'Incorrect username or password.';
       } else {
@@ -117,8 +127,7 @@ class AuthenticationBloc
         SportUser user = SportUser(
             uuid: credential.user?.uid ?? '', name: name, email: email);
         _userRepository.addUser(user);
-        sportUser = user;
-        emit(AuthenticationLoggedIn());
+        add(AuthenticationLoggedInEvent(user));
       } else {
         await _firebaseAuth.currentUser?.delete();
         return 'There was an internal error while trying to login, try again later.';
