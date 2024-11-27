@@ -6,6 +6,7 @@ import '../pages/my_games_page.dart';
 import '../blocs/authentication/bloc/authentication_bloc.dart';
 import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
+import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
@@ -56,7 +57,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                 path: RoutePaths.sportDetails,
                 name: RouteNames.sportDetails,
                 parentNavigatorKey: rootNavigatorKey, // Push to root navigator
-                builder: (context, state) => const SportDetailsPage(),
+                builder: (context, state) => RegistrationConfirmationPage(),
               ),
             ],
           ),
