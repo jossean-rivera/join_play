@@ -1,8 +1,10 @@
-# Uncomment this line to define a global platform for your project
 platform :ios, '13.0'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+# Disable CocoaPods analytics to reduce Flutter build latency
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+# Enable parallel code signing to speed up build times
+ENV['COCOAPODS_PARALLEL_CODE_SIGN'] = 'true'
 
 project 'Runner', {
   'Debug' => :debug,
@@ -28,21 +30,34 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
+  use_frameworks!  # If your project uses frameworks
 
-  pod 'FirebaseFirestore', '~> 11.4.0'
-  pod 'FirebaseAuth', '~> 11.4.0'
-  pod 'FirebaseCore', '~> 11.4.0'
+  pod 'FirebaseAuth', :podspec => nil do
+    spec = podspec
+    spec.name = 'FirebaseAuth'
+    spec.vendored_frameworks = './Frameworks/FirebaseAuth/FirebaseAuth.xcframework'
+  end
 
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  target 'RunnerTests' do
-    inherit! :search_paths
+  pod 'FirebaseCore', :podspec => nil do
+    spec = podspec
+    spec.name = 'FirebaseCore'
+    spec.vendored_frameworks = './Frameworks/FirebaseAnalytics/FirebaseCore.xcframework'
+  end
+
+  pod 'FirebaseFirestore', :podspec => nil do
+    spec = podspec
+    spec.name = 'FirebaseFirestore'
+    spec.vendored_frameworks = './Frameworks/FirebaseFirestore/FirebaseFirestore.xcframework'
   end
 end
 
+
 post_install do |installer|
   installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Disable Bitcode to improve build speed
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
     flutter_additional_ios_build_settings(target)
   end
 end
