@@ -25,7 +25,7 @@ class SportsPage extends StatelessWidget {
           children: [
             Text(
               'Hello, ${authenticationBloc.sportUser?.name}',
-              style: TextStyle(fontSize: 24), // Optional: Adjust text style
+              style: const TextStyle(fontSize: 24), // Optional: Adjust text style
             ),
             const SizedBox(
                 height: 20), // Add some space between text and button
