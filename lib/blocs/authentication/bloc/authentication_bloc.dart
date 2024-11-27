@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +49,21 @@ class AuthenticationBloc
     });
 
     // Handle authentication changes
-    on<AuthenticationUserChangedEvent>((event, emit) {
-      if (event.user == null) {
-        // User is signed out
-        emit(AuthenticationLoggedIn());
-      } else {
+    on<AuthenticationUserChangedEvent>((event, emit) async {
+      if (event.user?.uid != null) {
         // User is signed in
-        emit(AuthenticationLoggedOut());
+        SportUser? sportLoggedInUser =
+            await _userRepository.getUser(event.user?.uid ?? '');
+
+        if (sportLoggedInUser != null) {
+          sportUser = sportLoggedInUser;
+          emit(AuthenticationLoggedIn());
+          return;
+        }
       }
+
+      // The user is not valid or signed in
+      emit(AuthenticationLoggedOut());
     });
 
     // Emit our own auth state when the firebase auth state changes
