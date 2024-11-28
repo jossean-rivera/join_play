@@ -51,4 +51,15 @@ class FirebaseService {
       print('Error registering for event: $e');
     }
   }
+
+  // Fetch host details using Reference
+  Future<String> getHostName(DocumentReference hostUserRef) async {
+    try {
+      final userDoc = await hostUserRef.get();
+      return userDoc.exists ? userDoc['name'] ?? 'Unknown' : 'Unknown';
+    } catch (e) {
+      print('Error fetching host name: $e');
+      return 'Unknown';
+    }
+  }
 }

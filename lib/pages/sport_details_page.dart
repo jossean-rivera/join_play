@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../utilities/firebase_service.dart';
 
@@ -64,38 +65,51 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
               itemCount: events.length,
               itemBuilder: (context, index) {
                 final event = events[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(event['name']),
-                    subtitle: Text(
-                      "Location: ${event['location']}\n"
-                      "Time: ${event['dateTime'].toDate()}\n"
-                      "Slots Available: ${event['slotsAvailable']}",
-                    ),
-                    isThreeLine: true,
-                    trailing: event['slotsAvailable'] > 0
-                        ? ElevatedButton(
-                            onPressed: () async {
-                              await firebaseService.registerForEvent(
-                                event['id'], // Event ID
-                                "testUserId", // Replace with logged-in user ID
-                              );
+                final hostUserRef = event['hostUserId'] as DocumentReference;
 
-                              setState(() {}); // Refresh UI
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text("Registered for ${event['name']}")),
-                              );
-                            },
-                            child: const Text("Register"),
-                          )
-                        : const Text(
-                            "Full",
-                            style: TextStyle(color: Colors.red),
-                          ),
-                  ),
+                return FutureBuilder<String>(
+                  future: firebaseService.getHostName(hostUserRef),
+                  builder: (context, hostSnapshot) {
+                    final hostName =
+                        hostSnapshot.connectionState == ConnectionState.done
+                            ? hostSnapshot.data ?? "Unknown"
+                            : "Loading...";
+
+                    return Card(
+                      margin: const EdgeInsets.all(8.0),
+                      child: ListTile(
+                        title: Text(event['name']),
+                        subtitle: Text(
+                          "Location: ${event['location']}\n"
+                          "Time: ${event['dateTime'].toDate()}\n"
+                          "Slots Available: ${event['slotsAvailable']}\n"
+                          "Host: $hostName",
+                        ),
+                        isThreeLine: true,
+                        trailing: event['slotsAvailable'] > 0
+                            ? ElevatedButton(
+                                onPressed: () async {
+                                  await firebaseService.registerForEvent(
+                                    event['id'], // Event ID
+                                    "testUserId", // Replace with logged-in user ID
+                                  );
+
+                                  setState(() {}); // Refresh UI
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content:
+                                            Text("Registered for ${event['name']}")),
+                                  );
+                                },
+                                child: const Text("Register"),
+                              )
+                            : const Text(
+                                "Full",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                      ),
+                    );
+                  },
                 );
               },
             );
