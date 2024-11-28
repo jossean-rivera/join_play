@@ -40,8 +40,13 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
 
       return null;
     },
-    navigatorKey: rootNavigatorKey, // root navigator key
+    navigatorKey: rootNavigatorKey,
     routes: [
+      GoRoute(
+        path: RoutePaths.login,
+        name: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
+      ),
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) =>
@@ -53,10 +58,12 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
             builder: (context, state) => const SportsPage(),
             routes: [
               GoRoute(
-                path: RoutePaths.sportDetails,
+                path: ':sportId',
                 name: RouteNames.sportDetails,
-                parentNavigatorKey: rootNavigatorKey, // Push to root navigator
-                builder: (context, state) => const SportDetailsPage(),
+                builder: (context, state) {
+                  final sportId = state.pathParameters['sportId']!;
+                  return SportDetailsPage(sportId: sportId); // Pass sportId
+                },
               ),
             ],
           ),
@@ -76,11 +83,6 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
             builder: (context, state) => const ProfilePage(),
           ),
         ],
-      ),
-      GoRoute(
-        path: RoutePaths.login,
-        name: RouteNames.login,
-        builder: (context, state) => const LoginPage(),
       ),
     ],
   );
