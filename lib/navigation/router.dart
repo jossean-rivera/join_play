@@ -33,10 +33,9 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           return RoutePaths.login;
         }
       } else if (authenticationBloc.state is AuthenticationLoggedIn) {
-
-        //  If the event for logging in raise, and the user is in the login page, 
+        //  If the event for logging in raise, and the user is in the login page,
         //  then redirect to the home page
-        if (state.fullPath?.startsWith(RoutePaths.login) == true){
+        if (state.fullPath?.startsWith(RoutePaths.login) == true) {
           return RoutePaths.sports;
         }
       }
@@ -58,16 +57,30 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.sports,
             name: RouteNames.sports,
-            builder: (context, state) => SportsPage(firebaseService: context.read<FirebaseService>()),
+            builder: (context, state) =>
+                SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
-                path: ':sportId',
-                name: RouteNames.sportDetails,
-                builder: (context, state) {
-                  final sportId = state.pathParameters['sportId']!;
-                  return SportDetailsPage(sportId: sportId, firebaseService: context.read<FirebaseService>(),); // Pass sportId
-                },
-              ),
+                  path: ':sportId',
+                  name: RouteNames.sportDetails,
+                  builder: (context, state) {
+                    final sportId = state.pathParameters['sportId']!;
+                    return SportDetailsPage(
+                      sportId: sportId,
+                      firebaseService: context.read<FirebaseService>(),
+                      authenticationBloc:
+                          BlocProvider.of<AuthenticationBloc>(context),
+                    );
+                  },
+                  routes: [
+                    GoRoute(
+                      path: RoutePaths.registrationConfirmation,
+                      name: RouteNames.registrationConfirmation,
+                      builder: (context, state) {
+                        return RegistrationConfirmationPage();
+                      },
+                    ),
+                  ]),
             ],
           ),
           GoRoute(

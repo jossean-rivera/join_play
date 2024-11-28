@@ -8,4 +8,6 @@ class RouteNames {
   static const String sportDetails = "sportDetails";
   static const String myGameDetails = "myGameDetails";
   static const String historyDetails = "historyDetails";
+
+  static String registrationConfirmation = "registration-confirmation";
 }
