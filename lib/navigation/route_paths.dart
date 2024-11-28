@@ -6,7 +6,7 @@ class RoutePaths {
   static const String profile = "/profile";
 
   // Details paths for specific sections
-  static const String sportDetails = "/sportsdetails";
+  static const String sportDetails = "/sports/:sportId";
   static const String myGamesDetails = "/myGames/details";
   static const String historyDetails = "/history/details";
 }

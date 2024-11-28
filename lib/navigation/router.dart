@@ -62,7 +62,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                 name: RouteNames.sportDetails,
                 builder: (context, state) {
                   final sportId = state.pathParameters['sportId']!;
-                  return SportDetailsPage(); // Pass sportId
+                  return SportDetailsPage(sportId: sportId); // Pass sportId
                 },
               ),
             ],
