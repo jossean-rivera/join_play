@@ -24,9 +24,8 @@ class FirebaseService {
       final snapshot = await _firestore
           .collection('events-collection')
           .where('sportId', isEqualTo: sportId)
-          .where('dateTime', isGreaterThan: Timestamp.now()) // Filter future events
+          .where('dateTime', isGreaterThan: DateTime.now())
           .get();
-
       return snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id; // Include the document ID
@@ -41,18 +40,68 @@ class FirebaseService {
   // Register a user for an event
   Future<void> registerForEvent(String eventId, String userId) async {
     try {
-      final eventDoc = _firestore.collection('events-collection').doc(eventId);
-      await eventDoc.update({
-        'registeredUsers': FieldValue.arrayUnion([userId]),
-        'slotsAvailable': FieldValue.increment(-1), // Decrement available slots
+      final eventRef = _firestore.collection('events-collection').doc(eventId);
+      final registrationRef = _firestore.collection('registration').doc();
+
+      await _firestore.runTransaction((transaction) async {
+        final eventDoc = await transaction.get(eventRef);
+        if (!eventDoc.exists) {
+          throw Exception("Event does not exist");
+        }
+
+        final data = eventDoc.data();
+        final slotsAvailable = data?['slotsAvailable'] ?? 0;
+
+        if (slotsAvailable > 0) {
+          transaction.update(eventRef, {
+            'registeredUsers': FieldValue.arrayUnion([userId]),
+            'slotsAvailable': FieldValue.increment(-1),
+          });
+
+          transaction.set(registrationRef, {
+            'eventId': eventId,
+            'userId': userId,
+          });
+        } else {
+          throw Exception("No slots available");
+        }
       });
-      print('User $userId registered for event $eventId');
     } catch (e) {
       print('Error registering for event: $e');
     }
   }
 
-  // Fetch host details using Reference
+  // Unregister a user from an event
+  Future<void> unregisterFromEvent(String eventId, String userId) async {
+    try {
+      final eventRef = _firestore.collection('events-collection').doc(eventId);
+      final registrationQuery = _firestore
+          .collection('registration')
+          .where('eventId', isEqualTo: eventId)
+          .where('userId', isEqualTo: userId);
+
+      await _firestore.runTransaction((transaction) async {
+        final eventDoc = await transaction.get(eventRef);
+        if (!eventDoc.exists) {
+          throw Exception("Event does not exist");
+        }
+
+        final querySnapshot = await registrationQuery.get();
+        for (var doc in querySnapshot.docs) {
+          transaction.delete(doc.reference);
+        }
+
+        transaction.update(eventRef, {
+          'registeredUsers': FieldValue.arrayRemove([userId]),
+          'slotsAvailable': FieldValue.increment(1),
+        });
+      });
+    } catch (e) {
+      print('Error unregistering from event: $e');
+    }
+  }
+
+  // Fetch the host's name (optional if you want to use it later)
   Future<String> getHostName(DocumentReference hostUserRef) async {
     try {
       final userDoc = await hostUserRef.get();
@@ -63,3 +112,4 @@ class FirebaseService {
     }
   }
 }
+  

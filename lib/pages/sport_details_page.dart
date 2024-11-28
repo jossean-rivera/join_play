@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../utilities/firebase_service.dart';
 
@@ -13,32 +12,13 @@ class SportDetailsPage extends StatefulWidget {
 
 class _SportDetailsPageState extends State<SportDetailsPage> {
   final FirebaseService firebaseService = FirebaseService();
-  bool showUnavailable = false; // Toggle for available/unavailable events
+  String userId = "testUserId"; // Replace with actual logged-in user ID
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Details for ${widget.sportId}"),
-        actions: [
-          Switch(
-            value: showUnavailable,
-            onChanged: (value) {
-              setState(() {
-                showUnavailable = value;
-              });
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Center(
-              child: Text(
-                showUnavailable ? "Unavailable" : "Available",
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: firebaseService.getEventsForSport(widget.sportId),
@@ -50,66 +30,39 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("No events available for this sport."));
           } else {
-            final events = snapshot.data!
-                .where((event) {
-                  final hasSlots = event['slotsAvailable'] > 0;
-                  return showUnavailable ? !hasSlots : hasSlots;
-                })
-                .toList();
-
-            if (events.isEmpty) {
-              return const Center(child: Text("No matching events found."));
-            }
-
+            final events = snapshot.data!;
             return ListView.builder(
               itemCount: events.length,
               itemBuilder: (context, index) {
                 final event = events[index];
-                final hostUserRef = event['hostUserId'] as DocumentReference;
+                final isRegistered = event['registeredUsers']?.contains(userId) ?? false;
 
-                return FutureBuilder<String>(
-                  future: firebaseService.getHostName(hostUserRef),
-                  builder: (context, hostSnapshot) {
-                    final hostName =
-                        hostSnapshot.connectionState == ConnectionState.done
-                            ? hostSnapshot.data ?? "Unknown"
-                            : "Loading...";
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(event['name']),
+                    subtitle: Text(
+                      "Location: ${event['location']}\n"
+                      "Time: ${event['dateTime'].toDate()}\n"
+                      "Slots Available: ${event['slotsAvailable']}",
+                    ),
+                    isThreeLine: true,
+                    trailing: ElevatedButton(
+                      onPressed: () async {
+                        if (isRegistered) {
+                          await firebaseService.unregisterFromEvent(event['id'], userId);
+                        } else {
+                          await firebaseService.registerForEvent(event['id'], userId);
+                        }
 
-                    return Card(
-                      margin: const EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Text(event['name']),
-                        subtitle: Text(
-                          "Location: ${event['location']}\n"
-                          "Time: ${event['dateTime'].toDate()}\n"
-                          "Slots Available: ${event['slotsAvailable']}\n"
-                          "Host: $hostName",
-                        ),
-                        isThreeLine: true,
-                        trailing: event['slotsAvailable'] > 0
-                            ? ElevatedButton(
-                                onPressed: () async {
-                                  await firebaseService.registerForEvent(
-                                    event['id'], // Event ID
-                                    "testUserId", // Replace with logged-in user ID
-                                  );
-
-                                  setState(() {}); // Refresh UI
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content:
-                                            Text("Registered for ${event['name']}")),
-                                  );
-                                },
-                                child: const Text("Register"),
-                              )
-                            : const Text(
-                                "Full",
-                                style: TextStyle(color: Colors.red),
-                              ),
+                        setState(() {}); // Refresh UI
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isRegistered ? Colors.red : Colors.green,
                       ),
-                    );
-                  },
+                      child: Text(isRegistered ? "Unregister" : "Register"),
+                    ),
+                  ),
                 );
               },
             );
