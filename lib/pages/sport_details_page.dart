@@ -4,15 +4,16 @@ import '../utilities/firebase_service.dart';
 
 class SportDetailsPage extends StatefulWidget {
   final String sportId;
+  final FirebaseService firebaseService;
 
-  const SportDetailsPage({super.key, required this.sportId});
+  const SportDetailsPage({super.key, required this.sportId, required this.firebaseService});
 
   @override
   _SportDetailsPageState createState() => _SportDetailsPageState();
 }
 
 class _SportDetailsPageState extends State<SportDetailsPage> {
-  final FirebaseService firebaseService = FirebaseService();
+  
   bool showUnavailable = false; // Toggle for available/unavailable events
 
   @override
@@ -41,7 +42,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
         ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: firebaseService.getEventsForSport(widget.sportId),
+        future: widget.firebaseService.getEventsForSport(widget.sportId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -68,7 +69,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                 final hostUserRef = event['hostUserId'] as DocumentReference;
 
                 return FutureBuilder<String>(
-                  future: firebaseService.getHostName(hostUserRef),
+                  future: widget.firebaseService.getHostName(hostUserRef),
                   builder: (context, hostSnapshot) {
                     final hostName =
                         hostSnapshot.connectionState == ConnectionState.done
@@ -89,7 +90,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                         trailing: event['slotsAvailable'] > 0
                             ? ElevatedButton(
                                 onPressed: () async {
-                                  await firebaseService.registerForEvent(
+                                  await widget.firebaseService.registerForEvent(
                                     event['id'], // Event ID
                                     "testUserId", // Replace with logged-in user ID
                                   );

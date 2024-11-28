@@ -9,6 +9,7 @@ import 'navigation/router.dart';
 import 'firebase_options.dart';
 import 'repositories/firebase_user_repository.dart';
 import 'repositories/user_repository.dart';
+import 'utilities/firebase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,8 +28,11 @@ class MyApp extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<UserRepository>(
-          create: (context) => FirestoreUserRepository(FirebaseFirestore.instance),
+          create: (context) =>
+              FirestoreUserRepository(FirebaseFirestore.instance),
         ),
+        RepositoryProvider(
+            create: (context) => FirebaseService(FirebaseFirestore.instance))
       ],
       child: MultiBlocProvider(
         providers: [

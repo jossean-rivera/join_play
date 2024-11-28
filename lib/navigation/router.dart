@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/pages/sport_details_page.dart';
 import '../pages/history_page.dart';
@@ -8,6 +9,7 @@ import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
+import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
@@ -56,14 +58,14 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.sports,
             name: RouteNames.sports,
-            builder: (context, state) => const SportsPage(),
+            builder: (context, state) => SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
                 path: ':sportId',
                 name: RouteNames.sportDetails,
                 builder: (context, state) {
                   final sportId = state.pathParameters['sportId']!;
-                  return SportDetailsPage(sportId: sportId); // Pass sportId
+                  return SportDetailsPage(sportId: sportId, firebaseService: context.read<FirebaseService>(),); // Pass sportId
                 },
               ),
             ],
