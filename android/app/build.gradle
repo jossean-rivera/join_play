@@ -9,9 +9,21 @@ plugins {
 }
 
 android {
-    namespace = "com.example.join_play"
+    namespace = "com.example.hobbies"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+
+    /* 
+    Your project is configured with Android NDK 23.1.7779620, but the following plugin(s) depend on a different Android NDK version:
+    - cloud_firestore requires Android NDK 21.1.6352462
+    - firebase_auth requires Android NDK 21.1.6352462
+    - firebase_core requires Android NDK 21.1.6352462
+    - firebase_in_app_messaging requires Android NDK 21.1.6352462
+    - firebase_installations requires Android NDK 21.1.6352462
+    - rive_common requires Android NDK 25.1.8937393
+    Fix this issue by using the highest Android NDK version (they are backward compatible).
+    Add the following to /Users/jossean/Development/join_play/android/app/build.gradle:
+    */
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -24,13 +36,24 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.join_play"
+        applicationId = "com.example.hobbies"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        /**
+        | The plugin firebase_auth requires a higher Android SDK version.                                                   │
+        │ Fix this issue by adding the following to the file /Users/jossean/Development/join_play/android/app/build.gradle: │
+        │ android {                                                                                                         │
+        │   defaultConfig {                                                                                                 │
+        │     minSdkVersion 23                                                                                              │
+        │   }                                                                                                               │
+        │ }
+        */
+        minSdkVersion 23
 
         // Explicitly enabling BuildConfig support
         buildConfigField "boolean", "ENABLE_LOGS", "true"

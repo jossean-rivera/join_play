@@ -1,4 +1,4 @@
-package com.example.join_play
+package com.example.hobbies
 
 import io.flutter.embedding.android.FlutterActivity
 
