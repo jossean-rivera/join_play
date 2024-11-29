@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+//import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/navigation/route_names.dart';
-import 'package:join_play/navigation/router.dart';
+//import 'package:join_play/navigation/router.dart';
 import '../utilities/firebase_service.dart';
 
 class SportDetailsPage extends StatefulWidget {
@@ -106,10 +106,10 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                                   );
 
                                   //setState(() {}); // Refresh UI
-                                  GoRouter.of(context).goNamed(
+                                  /*GoRouter.of(context).goNamed(
                                     RouteNames.registrationConfirmation,
                                     pathParameters: {'sportId': event.sportId!},
-                                  );
+                                  );*/
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         content: Text(

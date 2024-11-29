@@ -7,7 +7,7 @@ import '../pages/my_games_page.dart';
 import '../blocs/authentication/bloc/authentication_bloc.dart';
 import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
-import '../pages/registration_confirmation_page.dart';
+//import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
@@ -61,18 +61,18 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                 SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
-                  path: ':sportId',
-                  name: RouteNames.sportDetails,
-                  builder: (context, state) {
-                    final sportId = state.pathParameters['sportId']!;
-                    return SportDetailsPage(
-                      sportId: sportId,
-                      firebaseService: context.read<FirebaseService>(),
-                      authenticationBloc:
-                          BlocProvider.of<AuthenticationBloc>(context),
-                    );
-                  },
-                  routes: [
+                path: ':sportId',
+                name: RouteNames.sportDetails,
+                builder: (context, state) {
+                  final sportId = state.pathParameters['sportId']!;
+                  return SportDetailsPage(
+                    sportId: sportId,
+                    firebaseService: context.read<FirebaseService>(),
+                    authenticationBloc:
+                        BlocProvider.of<AuthenticationBloc>(context),
+                  );
+                },
+                /* routes: [
                     GoRoute(
                       path: RoutePaths.registrationConfirmation,
                       name: RouteNames.registrationConfirmation,
@@ -80,7 +80,8 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                         return RegistrationConfirmationPage();
                       },
                     ),
-                  ]),
+                  ]*/
+              ),
             ],
           ),
           GoRoute(

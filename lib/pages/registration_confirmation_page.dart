@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
 class RegistrationConfirmationPage extends StatelessWidget {
@@ -28,3 +28,4 @@ class RegistrationConfirmationPage extends StatelessWidget {
     );
   }
 }
+*/
