@@ -24,7 +24,7 @@ class _RegistrationConfirmationPageState
 
     // Initialize confetti controller
     _confettiController =
-        ConfettiController(duration: const Duration(seconds: 1));
+        ConfettiController(duration: const Duration(milliseconds: 20));
 
     // Trigger an initail cofetti
     _confettiController.play();
