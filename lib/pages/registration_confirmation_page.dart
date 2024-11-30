@@ -13,7 +13,11 @@ class RegistrationConfirmationPage extends StatefulWidget {
 }
 
 class _RegistrationConfirmationPageState
-    extends State<RegistrationConfirmationPage> {
+    extends State<RegistrationConfirmationPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _labelController;
+  late Animation<double> _elevationAnimation;
+  late Animation<double> _sizeAnimation;
   late ConfettiController _confettiController;
   late SimpleAnimation _riveController;
   bool _confettiTriggered = false;
@@ -25,6 +29,24 @@ class _RegistrationConfirmationPageState
     // Initialize confetti controller
     _confettiController =
         ConfettiController(duration: const Duration(milliseconds: 20));
+
+    // Initialize animation controller that manages the label
+    _labelController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400));
+
+    CurvedAnimation curvedAnimation =
+        CurvedAnimation(parent: _labelController, curve: Curves.easeInBack);
+
+    // Create tweens for size and elevation
+    _elevationAnimation =
+        Tween<double>(begin: 50, end: 0).animate(curvedAnimation);
+    _sizeAnimation =
+        Tween<double>(begin: 1.0, end: 1.5).animate(curvedAnimation);
+
+    // Trigger label animation after some time
+    Future.delayed(const Duration(milliseconds: 300)).then((task) {
+      _labelController.forward();
+    });
 
     // Trigger an initail cofetti
     _confettiController.play();
@@ -82,12 +104,38 @@ class _RegistrationConfirmationPageState
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "You're going to the game!",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  textAlign: TextAlign.center,
+                child: AnimatedBuilder(
+                  animation: _labelController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                        offset: Offset(0, _elevationAnimation.value),
+                        child: Transform.scale(
+                          scale: _sizeAnimation.value,
+                          child: Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blueAccent.withOpacity(0.5),
+                                  blurRadius: 20,
+                                  offset: Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: const Text(
+                              "You're going to the game!",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ));
+                  },
                 ),
               ),
               const SizedBox(height: 30),
