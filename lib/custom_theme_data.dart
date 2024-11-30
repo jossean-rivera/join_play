@@ -9,7 +9,7 @@ ThemeData customThemeData = ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.blueGrey,
       // ···
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
     ),
 
     // Define the default `TextTheme`. Use this to specify the default
