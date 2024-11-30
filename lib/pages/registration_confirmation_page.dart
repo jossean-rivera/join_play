@@ -115,11 +115,6 @@ class _RegistrationConfirmationPageState
                           scale: _sizeAnimation.value,
                           child: const Text(
                             "You're going to the game!",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
                             textAlign: TextAlign.center,
                           ),
                         ));

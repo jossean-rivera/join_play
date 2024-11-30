@@ -8,17 +8,12 @@ class MyGamesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Games"),
-      ),
-      body: Center(
-        child: FilledButton(
-          child: const Text("Go to History"),
-          onPressed: () {
-            context.goNamed(RouteNames.history);
-          },
-        ),
+    return Center(
+      child: FilledButton(
+        child: const Text("Go to History"),
+        onPressed: () {
+          context.goNamed(RouteNames.history);
+        },
       ),
     );
   }
