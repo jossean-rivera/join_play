@@ -42,4 +42,7 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+
+    <!-- Add geolocation permissions. Use ACCESS_FINE_LOCATION for more precise location and ACCESS_COARSE_LOCATION for a city block.-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 </manifest>

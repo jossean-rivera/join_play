@@ -44,6 +44,10 @@ dependencies:
   firebase_installations: ^16.3.6
   rive: ^0.13.18
   confetti: ^0.8.0
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  google_maps_webservice: ^0.0.20-nullsafety.5
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:
