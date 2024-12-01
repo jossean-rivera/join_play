@@ -42,6 +42,7 @@ dependencies:
   cloud_firestore: ^5.5.0
   firebase_in_app_messaging: ^0.8.0+10
   firebase_installations: ^16.3.6
+  rive: ^0.13.18
 
 dev_dependencies:
   flutter_test:
@@ -67,17 +68,18 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-     - assets/images/basketball.jpg
-     - assets/images/baseball.jpg
-     - assets/images/waterpolo.jpg
-     - assets/images/rowing.jpg
-     - assets/images/soccer.jpg
-     - assets/images/beachvolleyball.jpg
-     - assets/images/volleyball.jpg
-     - assets/images/badminton.jpg
-     - assets/images/tennis.jpg
-     - assets/images/softball.jpg
-     - assets/images/golf.jpg
+    - assets/animations/cyclist.riv
+    - assets/images/basketball.jpg
+    - assets/images/baseball.jpg
+    - assets/images/waterpolo.jpg
+    - assets/images/rowing.jpg
+    - assets/images/soccer.jpg
+    - assets/images/beachvolleyball.jpg
+    - assets/images/volleyball.jpg
+    - assets/images/badminton.jpg
+    - assets/images/tennis.jpg
+    - assets/images/softball.jpg
+    - assets/images/golf.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
