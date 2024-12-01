@@ -131,6 +131,16 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
           }
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          GoRouter.of(context).goNamed(
+            RouteNames.gameForm,
+            pathParameters: {'sportId': widget.sportId!},
+            );
+        },
+        child: const Text('Add'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

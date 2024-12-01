@@ -9,6 +9,7 @@ import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
+import '../pages/game_form.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
@@ -78,6 +79,16 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                       name: RouteNames.registrationConfirmation,
                       builder: (context, state) {
                         return RegistrationConfirmationPage();
+                      },
+                    ),
+                    GoRoute(
+                      path: RoutePaths.gameForm,
+                      name: RouteNames.gameForm,
+                      builder: (context, state) {
+                        final sportId = state.pathParameters['sportId']!;
+                        return GameFormPage(
+                          sportId: sportId,
+                        );
                       },
                     ),
                   ]),
