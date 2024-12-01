@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../custom_theme_data.dart';
+
 class SignUpView extends StatefulWidget {
   const SignUpView({
     super.key,
@@ -91,7 +93,7 @@ class _SignUpViewState extends State<SignUpView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(32.0),
         child: Form(
           key: formKey,
           child: Column(
@@ -101,11 +103,11 @@ class _SignUpViewState extends State<SignUpView> {
               // Logo
               Center(
                 child: Image.asset(
-                  'assets/images/logo-dark.png',
+                  'assets/images/logo-darker.png',
                   height: 300,
                 ),
               ),
-              Text('Create an account',
+              Text('CREATE AN ACCOUNT',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 24), // Add some spacing below the logo
@@ -121,12 +123,12 @@ class _SignUpViewState extends State<SignUpView> {
                     padding: const EdgeInsets.all(8.0),
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade100,
+                      color: CustomColors.lightError,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       errorMessage ?? '',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: const TextStyle(color: CustomColors.darkerError),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -205,6 +207,7 @@ class _SignUpViewState extends State<SignUpView> {
                       )
                     : const Text("Sign Up"),
               ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   const Text("Already have an account?"),

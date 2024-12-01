@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../custom_theme_data.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
 
@@ -29,7 +30,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         onTap: (index) {
           _onTapItem(index, context);
         },
-        selectedItemColor: Colors.blue, // Set your desired color
+        selectedItemColor: CustomColors.babyBlue, // Set your desired color
         unselectedItemColor: Colors.grey, // Set your desired unselected color
       ),
     );

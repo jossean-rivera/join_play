@@ -14,20 +14,24 @@ class RoutePaths {
   static const String registrationConfirmation = "/confirmed";
 
   static String getTitleFromRoute(GoRouterState state) {
-    final routeName = state.fullPath;
-    switch (routeName) {
+    final routePath = state.fullPath;
+
+    // Do not display a title for the confirmed page.
+    if (routePath?.endsWith(registrationConfirmation) == true) {
+      return '';
+    }
+
+    switch (routePath) {
       case sports:
         return 'Sports';
       case sportDetails:
-        return 'Sport Details';
+        return '';
       case myGames:
         return 'My Games';
       case history:
         return 'History';
       case profile:
         return 'Profile';
-      case registrationConfirmation:
-        return 'Registration Confirmation';
       default:
         return 'Join Play'; // Default title
     }

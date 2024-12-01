@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:join_play/custom_theme_data.dart';
 
 class SignInView extends StatefulWidget {
   final Future<String?> Function(String email, String password)
@@ -102,7 +103,7 @@ class _SignInViewState extends State<SignInView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Form(
           key: formKey,
           child: Column(
@@ -112,11 +113,11 @@ class _SignInViewState extends State<SignInView> {
               // Logo
               Center(
                 child: Image.asset(
-                  'assets/images/logo-dark.png',
+                  'assets/images/logo-darker.png',
                   height: 300,
                 ),
               ),
-              Text('Log in',
+              Text('LOG INTO YOUR ACCOUNT',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 24), // Add some spacing below the logo
@@ -132,12 +133,12 @@ class _SignInViewState extends State<SignInView> {
                     padding: const EdgeInsets.all(8.0),
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade100,
+                      color: CustomColors.lightError,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       errorMessage ?? '',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: const TextStyle(color: CustomColors.darkerError),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -198,6 +199,7 @@ class _SignInViewState extends State<SignInView> {
                     // Display log in text in button when not submitting
                     const Text("Log In"),
               ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   const Text("Don't have an account?"),

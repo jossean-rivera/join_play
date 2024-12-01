@@ -78,6 +78,7 @@ flutter:
     - assets/animations/basketball_roll.riv
     - assets/animations/basketball_bounce.riv
     - assets/images/logo-dark.png
+    - assets/images/logo-darker.png
     - assets/images/logo-light.png
     - assets/images/basketball.jpg
     - assets/images/baseball.jpg

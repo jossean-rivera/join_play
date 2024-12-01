@@ -29,7 +29,7 @@ class _RegistrationConfirmationPageState
 
     // Initialize confetti controller
     _confettiController =
-        ConfettiController(duration: const Duration(milliseconds: 2000));
+        ConfettiController(duration: const Duration(milliseconds: 20));
 
     // Initialize animation controller that manages the label
     _labelController = AnimationController(
@@ -113,9 +113,10 @@ class _RegistrationConfirmationPageState
                         offset: Offset(0, _elevationAnimation.value),
                         child: Transform.scale(
                           scale: _sizeAnimation.value,
-                          child: const Text(
+                          child: Text(
                             "You're going to the game!",
                             textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineMedium,
                           ),
                         ));
                   },
@@ -140,21 +141,23 @@ class _RegistrationConfirmationPageState
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .goNamed(RouteNames.sports); // Navigate to /sports
-                      },
-                      child: const Text('Looking for more games?'),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () {
                         context
                             .goNamed(RouteNames.myGames); // Navigate to /myGame
                       },
-                      child: const Text('See my games'),
+                      child: const Text('Check my games'),
                     ),
+                    const SizedBox(height: 24),
+                    Text('Looking for more game?', style: Theme.of(context).textTheme.bodyMedium),
+                    TextButton(
+                      onPressed: () {
+                        context
+                            .goNamed(RouteNames.sports); // Navigate to /sports
+                      },
+                      child: const Text('Go back.'),
+                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
