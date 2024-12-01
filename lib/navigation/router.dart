@@ -88,6 +88,9 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                         final sportId = state.pathParameters['sportId']!;
                         return GameFormPage(
                           sportId: sportId,
+                          firebaseService: context.read<FirebaseService>(),
+                          authenticationBloc:
+                              BlocProvider.of<AuthenticationBloc>(context),
                         );
                       },
                     ),
