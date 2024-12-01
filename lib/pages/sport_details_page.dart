@@ -84,52 +84,58 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                 final isRegistered =
                     event.registeredUsers?.contains(currentUserId) ?? false;
 
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(event.name ?? ''),
-                    subtitle: Text(
-                      "Location: ${event.location}\n"
-                      "Time: ${event.dateTime?.toDate()}\n"
-                      "Slots Available: ${event.slotsAvailable}",
-                    ),
-                    isThreeLine: true,
-                    trailing: ElevatedButton(
-                      onPressed: () async {
-                        if (isRegistered) {
-                          // Unregister user
-                          await widget.firebaseService.unregisterFromEvent(
-                            event.id!,
-                            currentUserId,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    "Unregistered from ${event.name}")),
-                          );
-                        } else {
-                          // Register user
-                          await widget.firebaseService.registerForEvent(
-                            event.id!,
-                            currentUserId,
-                          );
-                          GoRouter.of(context).goNamed(
-                            RouteNames.registrationConfirmation,
-                            pathParameters: {'sportId': event.sportId!},
-                          
-                          
-                          );
-                        }
+                return FutureBuilder<String>(
+                  future: widget.firebaseService.getHostName(event.hostUserId!),
+                  builder: (context, hostSnapshot) {
+                    final hostName = hostSnapshot.connectionState ==
+                            ConnectionState.done
+                        ? hostSnapshot.data ?? "Unknown"
+                        : "Loading...";
 
-                        // Refresh the UI
-                        setState(() {});
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isRegistered ? Colors.red : Colors.blue,
+                    return Card(
+                      margin: const EdgeInsets.all(8.0),
+                      child: ListTile(
+                        title: Text(event.name ?? ''),
+                        subtitle: Text(
+                          "Location: ${event.location}\n"
+                          "Time: ${event.dateTime?.toDate()}\n"
+                          "Slots Available: ${event.slotsAvailable}\n"
+                          "Host: $hostName",
+                        ),
+                        isThreeLine: true,
+                        trailing: ElevatedButton(
+                          onPressed: () async {
+                            if (isRegistered) {
+                              // Unregister user
+                              await widget.firebaseService
+                                  .unregisterFromEvent(event.id!, currentUserId);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        "Unregistered from ${event.name}")),
+                              );
+                            } else {
+                              // Register user
+                              await widget.firebaseService
+                                  .registerForEvent(event.id!, currentUserId);
+                              GoRouter.of(context).goNamed(
+                                RouteNames.registrationConfirmation,
+                                pathParameters: {'sportId': event.sportId!},
+                              );
+                            }
+
+                            // Refresh the UI
+                            setState(() {});
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isRegistered ? Colors.red : Colors.blue,
+                          ),
+                          child: Text(isRegistered ? "Unregister" : "Register"),
+                        ),
                       ),
-                      child: Text(isRegistered ? "Unregister" : "Register"),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             );
