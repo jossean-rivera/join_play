@@ -101,17 +101,26 @@ class _SignInViewState extends State<SignInView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Logo
+              Center(
+                child: Image.asset(
+                  'assets/images/logo-dark.png',
+                  height: 300,
+                ),
+              ),
+              Text('Log in',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 24), // Add some spacing below the logo
+
               // Error message
               AnimatedCrossFade(
                 crossFadeState: crossFadeState,

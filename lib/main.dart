@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
           builder: (context) {
             return MaterialApp.router(
               theme: customThemeData,
-              title: 'Flutter Demo',
+              title: 'Join Play',
               routerConfig: createRouter(context.read<AuthenticationBloc>()),
             );
           },

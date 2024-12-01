@@ -77,6 +77,8 @@ flutter:
     - assets/animations/cyclist.riv
     - assets/animations/basketball_roll.riv
     - assets/animations/basketball_bounce.riv
+    - assets/images/logo-dark.png
+    - assets/images/logo-light.png
     - assets/images/basketball.jpg
     - assets/images/baseball.jpg
     - assets/images/waterpolo.jpg

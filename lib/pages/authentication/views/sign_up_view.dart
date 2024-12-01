@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class SignUpView extends StatefulWidget {
-  const SignUpView(
-      {super.key,
-      this.initEmail,
-      this.initPassword,
-      required this.emailSignUpCallback,
-      required this.signInRequestCallback});
+  const SignUpView({
+    super.key,
+    this.initEmail,
+    this.initPassword,
+    required this.emailSignUpCallback,
+    required this.signInRequestCallback,
+  });
+
   final Future<String?> Function(String name, String email, String password)
       emailSignUpCallback;
   final void Function(String? email, String? password) signInRequestCallback;
@@ -31,55 +33,41 @@ class _SignUpViewState extends State<SignUpView> {
   void initState() {
     super.initState();
 
-    // Pass initial values
     nameController = TextEditingController();
     emailController = TextEditingController(text: widget.initEmail);
     passwordController = TextEditingController(text: widget.initPassword);
 
-    // Clear error on typing
     emailController.addListener(_clearError);
     passwordController.addListener(_clearError);
   }
 
-  /// Updates the state to remove the error label from the UI
   void _clearError() {
     if (errorMessage != null) {
       setState(() {
         errorMessage = null;
-
-        // Use animated cross fade to hide the error label
         crossFadeState = CrossFadeState.showFirst;
       });
     }
   }
 
-  /// Method to invoke the sign up callback and update the UI accordingly
   Future<void> _handleSignUp() async {
     if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;
         errorMessage = null;
-
-        // Use animated cross fade to hide the error label
         crossFadeState = CrossFadeState.showFirst;
       });
 
-      // Get email and password from the form
       final name = nameController.text.trim();
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
 
       try {
-        // Invoke sign up callback
         final error = await widget.emailSignUpCallback(name, email, password);
 
-        // If there's a sign up, error, then display the error label
         if (error != null) {
           setState(() {
-            // Set the text of the error label
             errorMessage = error;
-
-            // Use animated cross fade to show the error label
             crossFadeState = CrossFadeState.showSecond;
           });
         }
@@ -102,17 +90,26 @@ class _SignUpViewState extends State<SignUpView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Sign Up"),
-      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Form(
           key: formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Logo
+              Center(
+                child: Image.asset(
+                  'assets/images/logo-dark.png',
+                  height: 300,
+                ),
+              ),
+              Text('Create an account',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 24), // Add some spacing below the logo
+
               // Error message
               AnimatedCrossFade(
                 crossFadeState: crossFadeState,
@@ -135,6 +132,7 @@ class _SignUpViewState extends State<SignUpView> {
                   ),
                 ),
               ),
+
               // Name text field
               TextFormField(
                 controller: nameController,
@@ -154,7 +152,6 @@ class _SignUpViewState extends State<SignUpView> {
                   return null;
                 },
               ),
-              // Add space
               const SizedBox(height: 16),
 
               // Email text field
@@ -176,8 +173,6 @@ class _SignUpViewState extends State<SignUpView> {
                   return null;
                 },
               ),
-
-              // Add space
               const SizedBox(height: 16),
 
               // Password text field
@@ -204,15 +199,11 @@ class _SignUpViewState extends State<SignUpView> {
               FilledButton(
                 onPressed: isSubmitting ? null : _handleSignUp,
                 child: isSubmitting
-                    ?
-                    // Show loading icon when submitting
-                    const CircularProgressIndicator(
+                    ? const CircularProgressIndicator(
                         color: Colors.white,
                         strokeWidth: 2.0,
                       )
-                    :
-                    // Display sign up text in button when not submitting
-                    const Text("Sign Up"),
+                    : const Text("Sign Up"),
               ),
               Row(
                 children: [

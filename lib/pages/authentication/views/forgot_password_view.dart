@@ -108,17 +108,30 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Reset Password"),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Logo
+              Center(
+                child: Image.asset(
+                  'assets/images/logo-dark.png',
+                  height: 300,
+                ),
+              ),
+              Text('Forgot your password?',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 8), // Add some spacing
+              Text('Enter your email address to reset your password.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: 24), // Add some spacing
+
               // Error message
               AnimatedCrossFade(
                 crossFadeState: crossFadeState,
