@@ -6,6 +6,7 @@ import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/navigation/route_names.dart';
 import '../utilities/firebase_service.dart';
+import 'package:join_play/models/sport_user.dart';
 
 class SportDetailsPage extends StatefulWidget {
   final String sportId;

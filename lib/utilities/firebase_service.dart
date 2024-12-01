@@ -104,4 +104,82 @@ class FirebaseService {
       print('Error unregistering from event: $e');
     }
   }
+  Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
+  try {
+    // Query the registration collection to fetch event IDs for the user
+    final registrationQuery = await _firestore
+        .collection('registration')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    final eventIds = registrationQuery.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['eventId'] as String;
+    }).toList();
+
+    // Ensure eventIds is not empty
+    if (eventIds.isEmpty) return [];
+
+    // Fetch all events from the collection and filter manually
+    final eventsSnapshot = await _firestore.collection('events-collection').get();
+
+    final filteredEvents = eventsSnapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final eventDateTime = data['dateTime'] as Timestamp;
+      final isFutureEvent = eventDateTime.toDate().isAfter(DateTime.now());
+      return eventIds.contains(doc.id) && (showFutureEvents ? isFutureEvent : !isFutureEvent);
+    }).toList();
+
+    return filteredEvents.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
+      return SportEvent.fromMap(data);
+    }).toList();
+  } catch (e) {
+    print('Error fetching registered events: $e');
+    return [];
+  }
+}
+Future<List<SportEvent>> getUserPastEvents(String userId) async {
+  try {
+    // Query the registration collection to fetch event IDs for the user
+    final registrationQuery = await _firestore
+        .collection('registration')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    final eventIds = registrationQuery.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['eventId'] as String;
+    }).toList();
+
+    // Ensure eventIds is not empty
+    if (eventIds.isEmpty) return [];
+
+    // Fetch all events and filter manually for past events
+    final eventsSnapshot = await _firestore.collection('events-collection').get();
+
+    final pastEvents = eventsSnapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final eventDateTime = data['dateTime'] as Timestamp;
+      final isPastEvent = eventDateTime.toDate().isBefore(DateTime.now());
+      return eventIds.contains(doc.id) && isPastEvent;
+    }).toList();
+
+    return pastEvents.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
+      return SportEvent.fromMap(data);
+    }).toList();
+  } catch (e) {
+    print('Error fetching past events: $e');
+    return [];
+  }
+}
+
+
+
+
+
+
 }
