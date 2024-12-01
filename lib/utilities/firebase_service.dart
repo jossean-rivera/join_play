@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:join_play/models/sport_event.dart';
 
 class FirebaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+
+  FirebaseService(this._firestore);
 
   // Fetch all sports
   Future<List<Map<String, dynamic>>> getSports() async {
@@ -19,7 +22,7 @@ class FirebaseService {
   }
 
   // Fetch events for a specific sport
-  Future<List<Map<String, dynamic>>> getEventsForSport(String sportId) async {
+  Future<List<SportEvent>> getEventsForSport(String sportId) async {
     try {
       final snapshot = await _firestore
           .collection('events-collection')
@@ -30,7 +33,7 @@ class FirebaseService {
       return snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id; // Include the document ID
-        return data;
+        return SportEvent.fromMap(data);
       }).toList();
     } catch (e) {
       print('Error fetching events for sport $sportId: $e');

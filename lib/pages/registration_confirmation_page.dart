@@ -9,12 +9,20 @@ class RegistrationConfirmationPage extends StatelessWidget {
         child: Container(
           width: 300,
           height: 300,
-          child: RiveAnimation.asset(
-            'assets/animations/cyclist.riv',
-            animations: [
-              'Timeline 1'
-            ], // Use the exact name from the Rive editor
+          child: const RiveAnimation.asset(
+            'assets/animations/basketball_bounce.riv',
+            animations: ['idle'],
           ),
+          // child: const RiveAnimation.asset(
+          //   'assets/animations/basketball_roll.riv',
+          //   animations: ['Example'],
+          // ),
+          // child: RiveAnimation.asset(
+          //   'assets/animations/cyclist.riv',
+          //   animations: [
+          //     'Timeline 1'
+          //   ], // Use the exact name from the Rive editor
+          // ),
         ),
       ),
     );

@@ -9,4 +9,5 @@ class RoutePaths {
   static const String sportDetails = "/sports/:sportId";
   static const String myGamesDetails = "/myGames/details";
   static const String historyDetails = "/history/details";
+  static String registrationConfirmation = "/confirmed";
 }

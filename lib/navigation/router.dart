@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/pages/sport_details_page.dart';
 import '../pages/history_page.dart';
@@ -8,6 +9,7 @@ import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
+import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
@@ -31,10 +33,9 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           return RoutePaths.login;
         }
       } else if (authenticationBloc.state is AuthenticationLoggedIn) {
-
-        //  If the event for logging in raise, and the user is in the login page, 
+        //  If the event for logging in raise, and the user is in the login page,
         //  then redirect to the home page
-        if (state.fullPath?.startsWith(RoutePaths.login) == true){
+        if (state.fullPath?.startsWith(RoutePaths.login) == true) {
           return RoutePaths.sports;
         }
       }
@@ -56,16 +57,30 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.sports,
             name: RouteNames.sports,
-            builder: (context, state) => const SportsPage(),
+            builder: (context, state) =>
+                SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
-                path: ':sportId',
-                name: RouteNames.sportDetails,
-                builder: (context, state) {
-                  final sportId = state.pathParameters['sportId']!;
-                  return SportDetailsPage(sportId: sportId); // Pass sportId
-                },
-              ),
+                  path: ':sportId',
+                  name: RouteNames.sportDetails,
+                  builder: (context, state) {
+                    final sportId = state.pathParameters['sportId']!;
+                    return SportDetailsPage(
+                      sportId: sportId,
+                      firebaseService: context.read<FirebaseService>(),
+                      authenticationBloc:
+                          BlocProvider.of<AuthenticationBloc>(context),
+                    );
+                  },
+                  routes: [
+                    GoRoute(
+                      path: RoutePaths.registrationConfirmation,
+                      name: RouteNames.registrationConfirmation,
+                      builder: (context, state) {
+                        return RegistrationConfirmationPage();
+                      },
+                    ),
+                  ]),
             ],
           ),
           GoRoute(

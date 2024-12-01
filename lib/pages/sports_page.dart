@@ -4,7 +4,9 @@ import '../utilities/firebase_service.dart';
 import '../navigation/route_names.dart';
 
 class SportsPage extends StatelessWidget {
-  const SportsPage({super.key});
+  final FirebaseService firebaseService;
+
+  const SportsPage({super.key, required this.firebaseService});
 
   void _navigateToDetails(BuildContext context, String sportId) {
     context.goNamed(
@@ -15,8 +17,6 @@ class SportsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseService firebaseService = FirebaseService();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Sports"),

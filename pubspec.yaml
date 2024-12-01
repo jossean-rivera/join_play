@@ -69,6 +69,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/animations/cyclist.riv
+    - assets/animations/basketball_roll.riv
+    - assets/animations/basketball_bounce.riv
     - assets/images/basketball.jpg
     - assets/images/baseball.jpg
     - assets/images/waterpolo.jpg
