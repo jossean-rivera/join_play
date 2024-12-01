@@ -29,7 +29,7 @@ class _RegistrationConfirmationPageState
 
     // Initialize confetti controller
     _confettiController =
-        ConfettiController(duration: const Duration(milliseconds: 20));
+        ConfettiController(duration: const Duration(milliseconds: 2000));
 
     // Initialize animation controller that manages the label
     _labelController = AnimationController(
