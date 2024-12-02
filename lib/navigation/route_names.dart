@@ -10,5 +10,5 @@ class RouteNames {
   static const String historyDetails = "historyDetails";
 
   static String registrationConfirmation = "registration-confirmation";
-  static String gameForm = 'gameForm';
+  static const String gameForm = 'gameForm';
 }

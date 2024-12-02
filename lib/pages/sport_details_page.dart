@@ -27,7 +27,6 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   bool showUnavailable = false;
   
     void _navigateToForm(BuildContext context, String sportId) {
-    print(sportId);
     context.goNamed(
       RouteNames.gameForm,
       pathParameters: {'sportId': sportId},
@@ -141,7 +140,6 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-            print(widget.sportId);
             _navigateToForm(context, widget.sportId);
         },
         child: const Text('Add'),
