@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:join_play/pages/location_page.dart';
 
 import 'blocs/authentication/bloc/authentication_bloc.dart';
 import 'navigation/router.dart';
@@ -16,7 +17,12 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  
+  /**
+   * Testing page for getting the device's location and display coordinates
+   * and calculate the distance between the current location and a given address.
+   */
+  //runApp(const MaterialApp(home: LocationPage()));
   runApp(const MyApp());
 }
 

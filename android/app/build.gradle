@@ -12,6 +12,12 @@ android {
     namespace = "com.example.hobbies"
     compileSdk = flutter.compileSdkVersion
 
+    /**
+     Required for geolocation
+     See more: https://fernandoptr.medium.com/how-to-get-users-current-location-address-in-flutter-geolocator-geocoding-be563ad6f66a
+     */
+    compileSdkVersion 34
+
     /* 
     Your project is configured with Android NDK 23.1.7779620, but the following plugin(s) depend on a different Android NDK version:
     - cloud_firestore requires Android NDK 21.1.6352462
