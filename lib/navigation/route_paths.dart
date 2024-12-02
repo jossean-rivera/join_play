@@ -11,6 +11,8 @@ class RoutePaths {
   static const String sportDetails = "/sports/:sportId";
   static const String myGamesDetails = "/myGames/details";
   static const String historyDetails = "/history/details";
+
+  static const String gameForm = "/gameForm";
   static const String registrationConfirmation = "/confirmed";
 
   static String getTitleFromRoute(GoRouterState state) {
