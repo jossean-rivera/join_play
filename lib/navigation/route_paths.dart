@@ -11,15 +11,15 @@ class RoutePaths {
   static const String sportDetails = "/sports/:sportId";
   static const String myGamesDetails = "/myGames/details";
   static const String historyDetails = "/history/details";
-
-  static const String gameForm = "/gameForm";
   static const String registrationConfirmation = "/confirmed";
+  static const String gameForm = "/gameForm";
 
   static String getTitleFromRoute(GoRouterState state) {
     final routePath = state.fullPath;
 
     // Do not display a title for the confirmed page.
-    if (routePath?.endsWith(registrationConfirmation) == true) {
+    if (routePath?.endsWith(registrationConfirmation) == true ||
+        routePath?.endsWith(gameForm) == true) {
       return '';
     }
 

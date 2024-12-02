@@ -42,7 +42,7 @@ class _RegistrationConfirmationPageState
     _elevationAnimation =
         Tween<double>(begin: 80, end: 0).animate(curvedAnimation);
     _sizeAnimation =
-        Tween<double>(begin: 1.0, end: 1.5).animate(curvedAnimation);
+        Tween<double>(begin: 1.0, end: 1.4).animate(curvedAnimation);
 
     // Trigger an initail cofetti
     _confettiController.play();

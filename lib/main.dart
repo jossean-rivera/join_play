@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:join_play/pages/location_page.dart';
+import 'package:join_play/blocs/authentication/location/location_bloc.dart';
+// ignore: unused_import
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
+// ignore: unused_import
+import 'package:firebase_installations/firebase_installations.dart';
 
 import 'blocs/authentication/bloc/authentication_bloc.dart';
 import 'custom_theme_data.dart';
 import 'navigation/router.dart';
 import 'firebase_options.dart';
+import 'repositories/addresses_repository.dart';
 import 'repositories/firebase_user_repository.dart';
 import 'repositories/user_repository.dart';
 import 'utilities/firebase_service.dart';
+// ignore: unused_import
+import 'pages/location_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +46,8 @@ class MyApp extends StatelessWidget {
               FirestoreUserRepository(FirebaseFirestore.instance),
         ),
         RepositoryProvider(
-            create: (context) => FirebaseService(FirebaseFirestore.instance))
+            create: (context) => FirebaseService(FirebaseFirestore.instance)),
+        RepositoryProvider(create: (context) => AddressesRepository())
       ],
       child: MultiBlocProvider(
         providers: [
@@ -47,6 +55,9 @@ class MyApp extends StatelessWidget {
             create: (context) => AuthenticationBloc(
                 FirebaseAuth.instance, context.read<UserRepository>()),
           ),
+          BlocProvider(
+              create: (context) =>
+                  LocationBloc(context.read<AddressesRepository>()))
         ],
         child: Builder(
           builder: (context) {
