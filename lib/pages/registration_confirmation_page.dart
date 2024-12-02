@@ -13,10 +13,15 @@ class RegistrationConfirmationPage extends StatefulWidget {
 }
 
 class _RegistrationConfirmationPageState
-    extends State<RegistrationConfirmationPage> {
+    extends State<RegistrationConfirmationPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _labelController;
+  late Animation<double> _elevationAnimation;
+  late Animation<double> _sizeAnimation;
   late ConfettiController _confettiController;
   late SimpleAnimation _riveController;
   bool _confettiTriggered = false;
+  bool _labelTriggered = false;
 
   @override
   void initState() {
@@ -25,6 +30,19 @@ class _RegistrationConfirmationPageState
     // Initialize confetti controller
     _confettiController =
         ConfettiController(duration: const Duration(milliseconds: 20));
+
+    // Initialize animation controller that manages the label
+    _labelController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
+
+    CurvedAnimation curvedAnimation =
+        CurvedAnimation(parent: _labelController, curve: Curves.easeInBack);
+
+    // Create tweens for size and elevation
+    _elevationAnimation =
+        Tween<double>(begin: 80, end: 0).animate(curvedAnimation);
+    _sizeAnimation =
+        Tween<double>(begin: 1.0, end: 1.5).animate(curvedAnimation);
 
     // Trigger an initail cofetti
     _confettiController.play();
@@ -52,6 +70,12 @@ class _RegistrationConfirmationPageState
       if (progress >= 0.48 && progress <= 0.52 && !_confettiTriggered) {
         _confettiController.play();
         _confettiTriggered = true;
+      }
+
+      // Trigger label animation once right before starting to bounce
+      if (!_labelTriggered && progress >= 0.45 && progress <= 0.48) {
+        _labelController.forward();
+        _labelTriggered = true;
       }
 
       // Continue tracking while the animation is active
@@ -82,12 +106,20 @@ class _RegistrationConfirmationPageState
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "You're going to the game!",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  textAlign: TextAlign.center,
+                child: AnimatedBuilder(
+                  animation: _labelController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                        offset: Offset(0, _elevationAnimation.value),
+                        child: Transform.scale(
+                          scale: _sizeAnimation.value,
+                          child: Text(
+                            "You're going to the game!",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ));
+                  },
                 ),
               ),
               const SizedBox(height: 30),
@@ -109,21 +141,23 @@ class _RegistrationConfirmationPageState
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .goNamed(RouteNames.sports); // Navigate to /sports
-                      },
-                      child: const Text('Looking for more games?'),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () {
                         context
                             .goNamed(RouteNames.myGames); // Navigate to /myGame
                       },
-                      child: const Text('See my games'),
+                      child: const Text('Check my games'),
                     ),
+                    const SizedBox(height: 24),
+                    Text('Looking for more game?', style: Theme.of(context).textTheme.bodyMedium),
+                    TextButton(
+                      onPressed: () {
+                        context
+                            .goNamed(RouteNames.sports); // Navigate to /sports
+                      },
+                      child: const Text('Go back.'),
+                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),

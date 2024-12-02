@@ -1,3 +1,5 @@
+import 'package:go_router/go_router.dart';
+
 class RouteNames {
   static const String sports = "sports";
   static const String myGames = "myGames";
@@ -8,6 +10,6 @@ class RouteNames {
   static const String sportDetails = "sportDetails";
   static const String myGameDetails = "myGameDetails";
   static const String historyDetails = "historyDetails";
-
-  static String registrationConfirmation = "registration-confirmation";
+  static const String registrationConfirmation = "registration-confirmation";
+  static const String gameForm = 'gameForm';
 }

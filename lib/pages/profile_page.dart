@@ -8,19 +8,14 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Profile"),
-      ),
-      body: Center(
-        child: FilledButton(
-          child: const Text("Log Out"),
-          onPressed: () {
-            BlocProvider.of<AuthenticationBloc>(context).add(
-              AuthenticationLogoutEvent(),
-            );
-          },
-        ),
+    return Center(
+      child: FilledButton(
+        child: const Text("Log Out"),
+        onPressed: () {
+          BlocProvider.of<AuthenticationBloc>(context).add(
+            AuthenticationLogoutEvent(),
+          );
+        },
       ),
     );
   }

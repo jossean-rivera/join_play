@@ -9,6 +9,7 @@ import '../pages/authentication/login_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
+import '../pages/game_form.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
@@ -52,7 +53,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) =>
-            ScaffoldWithNavBar(title: "", child: child),
+            ScaffoldWithNavBar(title: RoutePaths.getTitleFromRoute(state), child: child),
         routes: [
           GoRoute(
             path: RoutePaths.sports,
@@ -61,27 +62,39 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                 SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
-                path: ':sportId',
-                name: RouteNames.sportDetails,
-                builder: (context, state) {
-                  final sportId = state.pathParameters['sportId']!;
-                  return SportDetailsPage(
-                    sportId: sportId,
-                    firebaseService: context.read<FirebaseService>(),
-                    authenticationBloc:
-                        BlocProvider.of<AuthenticationBloc>(context),
-                  );
-                },
-                routes: [
-                  GoRoute(
-                    path: RoutePaths.registrationConfirmation,
-                    name: RouteNames.registrationConfirmation,
-                    builder: (context, state) {
-                      return const RegistrationConfirmationPage();
-                    },
-                  ),
-                ],
-              ),
+                  path: ':sportId',
+                  name: RouteNames.sportDetails,
+                  builder: (context, state) {
+                    final sportId = state.pathParameters['sportId']!;
+                    return SportDetailsPage(
+                      sportId: sportId,
+                      firebaseService: context.read<FirebaseService>(),
+                      authenticationBloc:
+                          BlocProvider.of<AuthenticationBloc>(context),
+                    );
+                  },
+                  routes: [
+                    GoRoute(
+                      path: RoutePaths.registrationConfirmation,
+                      name: RouteNames.registrationConfirmation,
+                      builder: (context, state) {
+                        return RegistrationConfirmationPage();
+                      },
+                    ),
+                    GoRoute(
+                      path: RoutePaths.gameForm,
+                      name: RouteNames.gameForm,
+                      builder: (context, state) {
+                        final sportId = state.pathParameters['sportId']!;
+                        return GameFormPage(
+                          sportId: sportId,
+                          firebaseService: context.read<FirebaseService>(),
+                          authenticationBloc:
+                              BlocProvider.of<AuthenticationBloc>(context),
+                        );
+                      },
+                    ),
+                  ]),
             ],
           ),
           GoRoute(

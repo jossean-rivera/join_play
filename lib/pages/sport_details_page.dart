@@ -25,7 +25,14 @@ class SportDetailsPage extends StatefulWidget {
 }
 
 class _SportDetailsPageState extends State<SportDetailsPage> {
-  bool showUnavailable = false; // Toggle for available/unavailable events
+  bool showUnavailable = false;
+  
+    void _navigateToForm(BuildContext context, String sportId) {
+    context.goNamed(
+      RouteNames.gameForm,
+      pathParameters: {'sportId': sportId},
+    );
+  } // Toggle for available/unavailable events
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +150,13 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
           }
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+            _navigateToForm(context, widget.sportId);
+        },
+        child: const Text('Add'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

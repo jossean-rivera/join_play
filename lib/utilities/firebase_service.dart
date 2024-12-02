@@ -66,6 +66,29 @@ class FirebaseService {
   }
 }
 
+  Future<void> createEvent(String sportId, String location, String name, String userId, int slotsAvailable, int totalSlots, Timestamp dateTime) async {
+    try {
+      final registrationDoc = _firestore.collection('events-collection').doc();
+      final hostUserRef = _firestore.collection('users').doc(userId);
+
+      await registrationDoc.set({
+        'dateTime': dateTime,
+        'hostUserId': hostUserRef,
+        'location': location,
+        'name': name,
+        'positionsRequired': [],
+        'registeredUsers': [],
+        'slotsAvailable': slotsAvailable,
+        'sportId': sportId,
+        'totalSlots': totalSlots,
+      });
+
+      print('Event created succesfully');
+    } catch (e) {
+      print('Error creating an event: $e');
+    }
+  }
+
   // Fetch host details using Reference
   Future<String> getHostName(DocumentReference hostUserRef) async {
     try {

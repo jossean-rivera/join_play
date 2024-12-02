@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:join_play/pages/location_page.dart';
 
 import 'blocs/authentication/bloc/authentication_bloc.dart';
+import 'custom_theme_data.dart';
 import 'navigation/router.dart';
 import 'firebase_options.dart';
 import 'repositories/firebase_user_repository.dart';
@@ -17,6 +19,11 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  /**
+   * Testing page for getting the device's location and display coordinates
+   * and calculate the distance between the current location and a given address.
+   */
+  //runApp(const MaterialApp(home: LocationPage()));
   runApp(const MyApp());
 }
 
@@ -44,11 +51,8 @@ class MyApp extends StatelessWidget {
         child: Builder(
           builder: (context) {
             return MaterialApp.router(
-              title: 'Flutter Demo',
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-                useMaterial3: true,
-              ),
+              theme: customThemeData,
+              title: 'Join Play',
               routerConfig: createRouter(context.read<AuthenticationBloc>()),
             );
           },
