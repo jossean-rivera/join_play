@@ -18,7 +18,8 @@ class RoutePaths {
     final routePath = state.fullPath;
 
     // Do not display a title for the confirmed page.
-    if (routePath?.endsWith(registrationConfirmation) == true) {
+    if (routePath?.endsWith(registrationConfirmation) == true ||
+        routePath?.endsWith(gameForm) == true) {
       return '';
     }
 

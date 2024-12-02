@@ -93,8 +93,10 @@ class _GameFormPageState extends State<GameFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Game'),
-      ),
+          title: Text(
+        'New Game',
+        style: Theme.of(context).textTheme.headlineMedium,
+      )),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

@@ -54,7 +54,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Details for ${widget.sportId}"),
+        title: Text(widget.sportId, style: Theme.of(context).textTheme.headlineMedium,),
         actions: [
           Switch(
             value: showUnavailable,
