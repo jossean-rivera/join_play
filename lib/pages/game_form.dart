@@ -207,6 +207,8 @@ class _GameFormPageState extends State<GameFormPage> {
                       _formKey.currentState!.save();
 
                       // Get user reference in database for the current logged in user
+                      final String userId = widget.authenticationBloc.sportUser!.uuid;
+
                       final userRef = widget.firebaseService
                           .getUserDocumentReference(
                               widget.authenticationBloc.sportUser!.uuid);
@@ -224,7 +226,7 @@ class _GameFormPageState extends State<GameFormPage> {
                         locationTitle: _locationTitle,
                         positionsRequired: [],
                         registeredUsers: [],
-                      ));
+                      ), userId);
 
                       // Process the form data here (e.g., save it to Firebase)
                       ScaffoldMessenger.of(context).showSnackBar(
