@@ -8,17 +8,12 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Games"),
-      ),
-      body: Center(
-        child: FilledButton(
-          child: const Text("Go to Profile"),
-          onPressed: () {
-            context.goNamed(RouteNames.profile);
-          },
-        ),
+    return Center(
+      child: FilledButton(
+        child: const Text("Go to Profile"),
+        onPressed: () {
+          context.goNamed(RouteNames.profile);
+        },
       ),
     );
   }

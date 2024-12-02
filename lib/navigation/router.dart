@@ -52,7 +52,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) =>
-            ScaffoldWithNavBar(title: "", child: child),
+            ScaffoldWithNavBar(title: RoutePaths.getTitleFromRoute(state), child: child),
         routes: [
           GoRoute(
             path: RoutePaths.sports,
