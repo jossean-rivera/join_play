@@ -54,7 +54,10 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.sportId, style: Theme.of(context).textTheme.headlineMedium,),
+        title: Text(
+          widget.sportId,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
         actions: [
           Switch(
             value: showUnavailable,
@@ -79,10 +82,14 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
         future: _loadAllData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
+            // Display loading icon
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            // Display error
             return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            // Display label that says there are no nearby events
+            // Give the option to change the location.
             if (_locationBloc.locationAquired != null &&
                 _locationBloc.currLocationName.isNotEmpty) {
               return Center(
@@ -115,56 +122,82 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
               return const Center(child: Text("No matching events found."));
             }
 
-            return ListView.builder(
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                final event = events[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(event.name ?? ''),
-                    subtitle: Text(
-                      "Location: ${event.location}\n"
-                      "Time: ${event.dateTime?.toDate()}\n"
-                      "Slots Available: ${event.slotsAvailable}\n"
-                      "Host: ${event.hostName}",
-                    ),
-                    isThreeLine: true,
-                    trailing: (event.slotsAvailable ?? 0) > 0
-                        ? FilledButton(
-                            onPressed: () async {
-                              await widget.firebaseService.registerForEvent(
-                                event.id!, // Event ID
-                                widget.authenticationBloc.sportUser!
-                                    .uuid, // Logged-in user ID
-                              );
-
-                              // Go to the confirmation page with animation
-                              GoRouter.of(context).goNamed(
-                                RouteNames.registrationConfirmation,
-                                pathParameters: {'sportId': event.sportId!},
-                              );
-                            },
-                            child: Text(
-                              "Register",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary),
-                            ),
-                          )
-                        : Text(
-                            "Full",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.error),
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  ListView.builder(
+                    // Set options to avoid conflicting scroll with single child scroll view
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index];
+                      return Card(
+                        margin: const EdgeInsets.all(8.0),
+                        child: ListTile(
+                          title: Text(event.name ?? ''),
+                          subtitle: Text(
+                            "Location: ${event.location}\n"
+                            "Time: ${event.dateTime?.toDate()}\n"
+                            "Slots Available: ${event.slotsAvailable}\n"
+                            "Host: ${event.hostName}",
                           ),
+                          isThreeLine: true,
+                          trailing: (event.slotsAvailable ?? 0) > 0
+                              ? FilledButton(
+                                  onPressed: () async {
+                                    await widget.firebaseService
+                                        .registerForEvent(
+                                      event.id!, // Event ID
+                                      widget.authenticationBloc.sportUser!
+                                          .uuid, // Logged-in user ID
+                                    );
+
+                                    // Go to the confirmation page with animation
+                                    GoRouter.of(context).goNamed(
+                                      RouteNames.registrationConfirmation,
+                                      pathParameters: {
+                                        'sportId': event.sportId!
+                                      },
+                                    );
+                                  },
+                                  child: Text(
+                                    "Register",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onPrimary),
+                                  ),
+                                )
+                              : Text(
+                                  "Full",
+                                  style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.error),
+                                ),
+                        ),
+                      );
+                    },
                   ),
-                );
-                ;
-              },
+                  // Change location button section
+                  const SizedBox(height: 16),
+                  const Text("Want to search for events in another location?"),
+                  TextButton(
+                    onPressed: () async {
+                      // Show dialog to change address
+                      await _locationBloc.showChangeLocationDialog(
+                          context: context);
+
+                      // Refresh UI
+                      setState(() {});
+                    },
+                    child: const Text('Change location'),
+                  ),
+                ],
+              ),
             );
           }
         },
