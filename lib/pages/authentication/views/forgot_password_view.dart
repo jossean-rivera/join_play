@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../custom_theme_data.dart';
+
 class ForgotPasswordView extends StatefulWidget {
   final Future<String?> Function(String email) emailForgotPasswordCallback;
 
@@ -108,17 +110,30 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Reset Password"),
-      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Form(
           key: formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Logo
+              Center(
+                child: Image.asset(
+                  'assets/images/logo-darker.png',
+                  height: 300,
+                ),
+              ),
+              Text('Forgot your password?',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 8), // Add some spacing
+              Text('Enter your email address to reset your password.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 24), // Add some spacing
+
               // Error message
               AnimatedCrossFade(
                 crossFadeState: crossFadeState,
@@ -130,12 +145,12 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
                     padding: const EdgeInsets.all(8.0),
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade100,
+                      color: CustomColors.lightError,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       errorMessage ?? '',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: const TextStyle(color: CustomColors.darkerError),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -176,6 +191,7 @@ class _ForgotPasswordView extends State<ForgotPasswordView> {
                     // Display log in text in button when not submitting
                     const Text("Reset"),
               ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   const Text("Changed your mind?"),

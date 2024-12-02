@@ -44,6 +44,11 @@ dependencies:
   firebase_installations: ^16.3.6
   rive: ^0.13.18
   confetti: ^0.8.0
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  google_maps_webservice: ^0.0.20-nullsafety.5
+  flutter_typeahead: ^5.2.0
+  google_fonts: ^4.0.4
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +77,9 @@ flutter:
     - assets/animations/cyclist.riv
     - assets/animations/basketball_roll.riv
     - assets/animations/basketball_bounce.riv
+    - assets/images/logo-dark.png
+    - assets/images/logo-darker.png
+    - assets/images/logo-light.png
     - assets/images/basketball.jpg
     - assets/images/baseball.jpg
     - assets/images/waterpolo.jpg
