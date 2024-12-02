@@ -101,11 +101,11 @@ class _LocationPageState extends State<LocationPage> {
   }
 
   Future<bool> _handleLocationPermission() {
-    return _addressesRepository.handleLocationPermission(context);
+    return _addressesRepository.handleLocationPermission();
   }
 
   Future<void> _getCurrentPosition() async {
-    Position? position = await _addressesRepository.getCurrentPosition(context);
+    Position? position = await _addressesRepository.getCurrentPosition();
     if (position != null) {
       setState(() {
         _currentPosition = position;

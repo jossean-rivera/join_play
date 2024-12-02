@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:join_play/models/sport_event.dart';
 
 class FirebaseService {
@@ -27,7 +28,8 @@ class FirebaseService {
       final snapshot = await _firestore
           .collection('events-collection')
           .where('sportId', isEqualTo: sportId)
-          .where('dateTime', isGreaterThan: Timestamp.now()) // Filter future events
+          .where('dateTime',
+              isGreaterThan: Timestamp.now()) // Filter future events
           .get();
 
       return snapshot.docs.map((doc) {
@@ -66,26 +68,23 @@ class FirebaseService {
   }
 }
 
-  Future<void> createEvent(String sportId, String location, String name, String userId, int slotsAvailable, int totalSlots, Timestamp dateTime) async {
+  /// Gets the user reference from the database based on the given user id.
+  DocumentReference<Map<String, dynamic>> getUserDocumentReference(
+      String userId) {
+    return _firestore.collection('users').doc(userId);
+  }
+
+  /// Creates game event in database
+  Future<String?> createEvent(SportEvent event) async {
     try {
+      var eventMap = event.toMap();
       final registrationDoc = _firestore.collection('events-collection').doc();
-      final hostUserRef = _firestore.collection('users').doc(userId);
+      await registrationDoc.set(eventMap);
 
-      await registrationDoc.set({
-        'dateTime': dateTime,
-        'hostUserId': hostUserRef,
-        'location': location,
-        'name': name,
-        'positionsRequired': [],
-        'registeredUsers': [],
-        'slotsAvailable': slotsAvailable,
-        'sportId': sportId,
-        'totalSlots': totalSlots,
-      });
-
-      print('Event created succesfully');
+      return null;
     } catch (e) {
-      print('Error creating an event: $e');
+      debugPrint('Failed to save new game event $e');
+      return 'There was an error while trying to save a new game. Please try again later.';
     }
   }
 

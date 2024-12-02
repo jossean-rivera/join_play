@@ -1,10 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
+import 'package:join_play/blocs/authentication/location/location_bloc.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/navigation/route_names.dart';
+
+import 'package:join_play/repositories/addresses_repository.dart';
+import '../blocs/authentication/location/location_event.dart';
+
 import '../utilities/firebase_service.dart';
 import 'package:join_play/models/sport_user.dart';
 
@@ -12,33 +19,45 @@ class SportDetailsPage extends StatefulWidget {
   final String sportId;
   final FirebaseService firebaseService;
   final AuthenticationBloc authenticationBloc;
+  final AddressesRepository addressesRepository;
 
-  const SportDetailsPage({
-    super.key,
-    required this.sportId,
-    required this.firebaseService,
-    required this.authenticationBloc,
-  });
+  const SportDetailsPage(
+      {super.key,
+      required this.sportId,
+      required this.firebaseService,
+      required this.authenticationBloc,
+      required this.addressesRepository});
 
   @override
-  _SportDetailsPageState createState() => _SportDetailsPageState();
+  State<SportDetailsPage> createState() => _SportDetailsPageState();
 }
 
 class _SportDetailsPageState extends State<SportDetailsPage> {
   bool showUnavailable = false;
-  
-    void _navigateToForm(BuildContext context, String sportId) {
+
+  late LocationBloc _locationBloc;
+
+  // Radius for the events to display
+  static const double _radiusInKM = 100;
+
+  void _navigateToForm(BuildContext context, String sportId) {
     context.goNamed(
       RouteNames.gameForm,
       pathParameters: {'sportId': sportId},
     );
-  } // Toggle for available/unavailable events
+  }
+
+  @override
+  void initState() {
+    _locationBloc = BlocProvider.of<LocationBloc>(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Details for ${widget.sportId}"),
+        title: Text(widget.sportId, style: Theme.of(context).textTheme.headlineMedium,),
         actions: [
           Switch(
             value: showUnavailable,
@@ -60,20 +79,40 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
         ],
       ),
       body: FutureBuilder<List<SportEvent>>(
-        future: widget.firebaseService.getEventsForSport(widget.sportId),
+        future: _loadAllData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            if (_locationBloc.locationAquired != null &&
+                _locationBloc.currLocationName.isNotEmpty) {
+              return Center(
+                  child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("No events close to ${_locationBloc.currLocationName}"),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        // Show dialog to change address
+                        await _locationBloc.showChangeLocationDialog(
+                            context: context);
+
+                        // Refresh UI
+                        setState(() {});
+                      },
+                      child: const Text('Change location'))
+                ],
+              ));
+            }
             return const Center(
                 child: Text("No events available for this sport."));
           } else {
-            final events = snapshot.data!.where((event) {
-              final hasSlots = (event.slotsAvailable ?? 0) > 0;
-              return showUnavailable ? !hasSlots : hasSlots;
-            }).toList();
+            final events = snapshot.data!;
 
             if (events.isEmpty) {
               return const Center(child: Text("No matching events found."));
@@ -83,7 +122,6 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
               itemCount: events.length,
               itemBuilder: (context, index) {
                 final event = events[index];
-
                 // Get current user ID
                 final currentUserId =
                     widget.authenticationBloc.sportUser?.uuid ?? '';
@@ -145,6 +183,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                     );
                   },
                 );
+                ;
               },
             );
           }
@@ -152,11 +191,97 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-            _navigateToForm(context, widget.sportId);
+          _navigateToForm(context, widget.sportId);
         },
         child: const Text('Add'),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+  }
+
+  /// Combines all async process for loading data into one future
+  Future<List<SportEvent>> _loadAllData() async {
+    // Handle location access first.
+    bool success = await _handleLocationAccess();
+
+    if (!success) {
+      return [];
+    }
+
+    // Get all sports events
+    List<SportEvent> events =
+        await widget.firebaseService.getEventsForSport(widget.sportId);
+
+    // Get only the events that are open
+    Iterable<SportEvent> filteredEvents = events.where((e) {
+      // Filter based on the slots available
+      final hasSlots = (e.slotsAvailable ?? 0) > 0;
+      bool slotsFilter = showUnavailable ? !hasSlots : hasSlots;
+
+      if (!slotsFilter) {
+        return false;
+      }
+
+      // We need coordinates to calculate the distance
+      if (e.locationLatitude == null || e.locationLongitude == null) {
+        return false;
+      }
+
+      // Filter events that are close
+      double distance = widget.addressesRepository.calculateDistance(
+          _locationBloc.currLocationLatitude!,
+          _locationBloc.currLocationLongitude!,
+          e.locationLatitude!,
+          e.locationLongitude!);
+      return distance <= _radiusInKM;
+    });
+
+    for (SportEvent event in filteredEvents) {
+      // Set host name
+      event.hostName = await widget.firebaseService
+          .getHostName(event.hostUserId as DocumentReference);
+    }
+
+    return filteredEvents.toList();
+  }
+
+  /// Checks if the user has granted access and ask
+  /// for permission if not then ask for the address they want to use.
+  Future<bool> _handleLocationAccess() async {
+    if (_locationBloc.locationAquired) {
+      // We have already saved the location to search for events.
+      return true;
+    }
+
+    bool access = await widget.addressesRepository.handleLocationPermission();
+    if (!access) {
+      // Ask user to select the location then.
+      await _locationBloc.showLocationUnavailableDialog(
+          context: context,
+          onCancel: () {
+            // Go back
+            context.goNamed(RouteNames.sports);
+          });
+      return true;
+    } else {
+      // Get the location of the device
+      Position? currPosition =
+          await widget.addressesRepository.getCurrentPosition();
+
+      if (currPosition != null) {
+        Placemark? place = await widget.addressesRepository
+            .getAddressFromPosition(currPosition);
+
+        _locationBloc.add(SaveLocationEvent(
+            latitude: currPosition.latitude,
+            longitude: currPosition.longitude,
+            placemark: place));
+
+        setState(() {});
+        return true;
+      }
+    }
+
+    return false;
   }
 }

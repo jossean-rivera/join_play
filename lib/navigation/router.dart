@@ -10,6 +10,7 @@ import '../pages/profile_page.dart';
 import '../pages/registration_confirmation_page.dart';
 import '../pages/sports_page.dart';
 import '../pages/game_form.dart';
+import '../repositories/addresses_repository.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
 import 'route_names.dart';
@@ -71,6 +72,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                       firebaseService: context.read<FirebaseService>(),
                       authenticationBloc:
                           BlocProvider.of<AuthenticationBloc>(context),
+                      addressesRepository: context.read<AddressesRepository>(),
                     );
                   },
                   routes: [
@@ -78,7 +80,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                       path: RoutePaths.registrationConfirmation,
                       name: RouteNames.registrationConfirmation,
                       builder: (context, state) {
-                        return RegistrationConfirmationPage();
+                        return const RegistrationConfirmationPage();
                       },
                     ),
                     GoRoute(
@@ -91,6 +93,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                           firebaseService: context.read<FirebaseService>(),
                           authenticationBloc:
                               BlocProvider.of<AuthenticationBloc>(context),
+                          addressesRepository: context.read<AddressesRepository>(),
                         );
                       },
                     ),
