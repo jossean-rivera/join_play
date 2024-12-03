@@ -75,13 +75,20 @@ class FirebaseService {
   }
 
   /// Creates game event in database
-  Future<String?> createEvent(SportEvent event) async {
+  Future<String?> createEvent(SportEvent event, String userId) async {
     try {
       var eventMap = event.toMap();
       final registrationDoc = _firestore.collection('events-collection').doc();
       await registrationDoc.set(eventMap);
 
-      return null;
+      final hostlogDoc = _firestore.collection('host').doc();
+      await hostlogDoc.set({
+        'userId' : userId,
+        'eventId' : registrationDoc.id,
+    });
+
+          print('${userId} created the event ${registrationDoc.id}');
+      
     } catch (e) {
       debugPrint('Failed to save new game event $e');
       return 'There was an error while trying to save a new game. Please try again later.';
