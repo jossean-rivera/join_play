@@ -159,6 +159,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                                     if (isRegistered) {
                                       await widget.firebaseService
                                           .unregisterFromEvent(event.id!, currentUserId);
+                                      setState(() {});
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                             content: Text(
@@ -179,8 +180,8 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                                             'sportId': event.sportId!
                                           },
                                         );
-                                      },
-                                    }
+                                      }
+                                    },
                                     
                                   child: Text(
                                     isRegistered? "Unregister" : "Register",
