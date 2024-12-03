@@ -69,6 +69,7 @@ class FirebaseService {
   }
 }
 
+
   /// Gets the user reference from the database based on the given user id.
   DocumentReference<Map<String, dynamic>> getUserDocumentReference(
       String userId) {
@@ -77,24 +78,32 @@ class FirebaseService {
 
   /// Creates game event in database
   Future<String?> createEvent(SportEvent event) async {
-    try {
-      var eventMap = event.toMap();
-      final registrationDoc = _firestore.collection('events-collection').doc();
-      await registrationDoc.set(eventMap);
+  try {
+    var eventMap = event.toMap();
 
-      final hostlogDoc = _firestore.collection('host').doc();
-      await hostlogDoc.set({
-        'userId' : event.hostUserId,
-        'eventId' : registrationDoc.id,
+    // Create a new document reference for the event
+    final eventDocRef = _firestore.collection('events-collection').doc();
+
+    // Save the event document
+    await eventDocRef.set(eventMap);
+
+    // Save the host document with eventId as a DocumentReference
+    final hostLogDoc = _firestore.collection('host').doc();
+    await hostLogDoc.set({
+      'userId': event.hostUserId, // Keep userId as it is
+      'eventId': eventDocRef, // Pass eventId as a DocumentReference
     });
 
-          print('${event.hostUserId} created the event ${registrationDoc.id}');
-      
-    } catch (e) {
-      debugPrint('Failed to save new game event $e');
-      return 'There was an error while trying to save a new game. Please try again later.';
-    }
+    print('${event.hostUserId} created the event ${eventDocRef.id}');
+  } catch (e) {
+    debugPrint('Failed to save new game event $e');
+    return 'There was an error while trying to save a new game. Please try again later.';
   }
+  return null;
+}
+
+
+
 
   // Fetch host details using Reference
   Future<String> getHostName(DocumentReference hostUserRef) async {
@@ -143,7 +152,7 @@ class FirebaseService {
         .get();
 
     final eventIds = registrationQuery.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       return data['eventId'] as String;
     }).toList();
 
@@ -154,14 +163,14 @@ class FirebaseService {
     final eventsSnapshot = await _firestore.collection('events-collection').get();
 
     final filteredEvents = eventsSnapshot.docs.where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       final eventDateTime = data['dateTime'] as Timestamp;
       final isFutureEvent = eventDateTime.toDate().isAfter(DateTime.now());
       return eventIds.contains(doc.id) && (showFutureEvents ? isFutureEvent : !isFutureEvent);
     }).toList();
 
     return filteredEvents.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       data['id'] = doc.id;
       return SportEvent.fromMap(data);
     }).toList();
@@ -170,42 +179,104 @@ class FirebaseService {
     return [];
   }
 }
-Future<List<SportEvent>> getUserPastEvents(String userId) async {
+  Future<List<SportEvent>> getUserPastEvents(String userId) async {
+    try {
+      // Query the registration collection to fetch event IDs for the user
+      final registrationQuery = await _firestore
+          .collection('registration')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final eventIds = registrationQuery.docs.map((doc) {
+        final data = doc.data();
+        return data['eventId'] as String;
+      }).toList();
+
+      // Ensure eventIds is not empty
+      if (eventIds.isEmpty) return [];
+
+      // Fetch all events and filter manually for past events
+      final eventsSnapshot = await _firestore.collection('events-collection').get();
+
+      final pastEvents = eventsSnapshot.docs.where((doc) {
+        final data = doc.data();
+        final eventDateTime = data['dateTime'] as Timestamp;
+        final isPastEvent = eventDateTime.toDate().isBefore(DateTime.now());
+        return eventIds.contains(doc.id) && isPastEvent;
+      }).toList();
+
+      return pastEvents.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return SportEvent.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Error fetching past events: $e');
+      return [];
+    }
+  }
+  Future<List<SportEvent>> getHostedEvents(String userId) async {
   try {
-    // Query the registration collection to fetch event IDs for the user
-    final registrationQuery = await _firestore
-        .collection('registration')
-        .where('userId', isEqualTo: userId)
+    // Query the 'host' collection to get all event IDs where the user is the host
+    final hostSnapshot = await _firestore
+        .collection('host')
+        .where('userId', isEqualTo: _firestore.collection('users').doc(userId)) // Match userId as DocumentReference
         .get();
 
-    final eventIds = registrationQuery.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      return data['eventId'] as String;
-    }).toList();
+    // Extract event IDs from the 'host' collection
+    final eventIds = hostSnapshot.docs.map((doc) {
+      final data = doc.data();
+      final eventRef = data['eventId'] as DocumentReference?;
+      return eventRef?.id; // Get the ID of the DocumentReference
+    }).whereType<String>().toList(); // Remove nulls
 
-    // Ensure eventIds is not empty
-    if (eventIds.isEmpty) return [];
+    if (eventIds.isEmpty) {
+      return []; // No hosted events found
+    }
 
-    // Fetch all events and filter manually for past events
-    final eventsSnapshot = await _firestore.collection('events-collection').get();
+    // Query the 'events-collection' for events matching the retrieved IDs
+    final eventSnapshot = await _firestore
+        .collection('events-collection')
+        .where(FieldPath.documentId, whereIn: eventIds) // Use event IDs
+        .get();
 
-    final pastEvents = eventsSnapshot.docs.where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final eventDateTime = data['dateTime'] as Timestamp;
-      final isPastEvent = eventDateTime.toDate().isBefore(DateTime.now());
-      return eventIds.contains(doc.id) && isPastEvent;
-    }).toList();
-
-    return pastEvents.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      data['id'] = doc.id;
+    // Map the results to a list of SportEvent
+    return eventSnapshot.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id; // Include the document ID
       return SportEvent.fromMap(data);
     }).toList();
   } catch (e) {
-    print('Error fetching past events: $e');
+    print('Error fetching hosted events: $e');
     return [];
   }
 }
+Future<List<String>> getUserNames(List<String> userIds) async {
+  try {
+    List<String> userNames = [];
+
+    for (String userId in userIds) {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null && data['name'] != null) {
+          userNames.add(data['name']);
+        } else {
+          userNames.add("Unknown"); // Fallback if the name is not found
+        }
+      }
+    }
+    return userNames;
+  } catch (e) {
+    print('Error fetching user names: $e');
+    return [];
+  }
+}
+
+
+
+
+
 
 
 
