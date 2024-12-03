@@ -102,6 +102,36 @@ class FirebaseService {
   return null;
 }
 
+Future<void> updateEvent(String gameId, SportEvent event) async {
+  try {
+    final eventMap = event.toMap();
+    final eventDocRef = _firestore.collection('events-collection').doc(gameId);
+
+    // Update the existing document
+    await eventDocRef.update(eventMap);
+
+    print('${event.hostUserId} updated the event ${eventDocRef.id}');
+  } catch (e) {
+    debugPrint('Failed to update game event: $e');
+    throw 'Failed to update game event. Please try again.';
+  }
+}
+
+
+Future<void> deleteEvent(String gameId) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('events-collection')
+        .doc(gameId)
+        .delete();
+    print('Game $gameId deleted successfully.');
+  } catch (e) {
+    debugPrint('Failed to delete game event: $e');
+    throw 'Failed to delete the game. Please try again later.';
+  }
+}
+
+
 
 
 
