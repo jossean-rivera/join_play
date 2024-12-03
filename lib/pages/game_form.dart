@@ -226,7 +226,7 @@ class _GameFormPageState extends State<GameFormPage> {
                         locationTitle: _locationTitle,
                         positionsRequired: [],
                         registeredUsers: [],
-                      ), userId);
+                      ));
 
                       // Process the form data here (e.g., save it to Firebase)
                       ScaffoldMessenger.of(context).showSnackBar(

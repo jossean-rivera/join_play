@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:join_play/models/sport.dart';
 import 'package:join_play/models/sport_event.dart';
 
 class FirebaseService {
@@ -75,7 +76,7 @@ class FirebaseService {
   }
 
   /// Creates game event in database
-  Future<String?> createEvent(SportEvent event, String userId) async {
+  Future<String?> createEvent(SportEvent event) async {
     try {
       var eventMap = event.toMap();
       final registrationDoc = _firestore.collection('events-collection').doc();
@@ -83,11 +84,11 @@ class FirebaseService {
 
       final hostlogDoc = _firestore.collection('host').doc();
       await hostlogDoc.set({
-        'userId' : userId,
+        'userId' : event.hostUserId,
         'eventId' : registrationDoc.id,
     });
 
-          print('${userId} created the event ${registrationDoc.id}');
+          print('${event.hostUserId} created the event ${registrationDoc.id}');
       
     } catch (e) {
       debugPrint('Failed to save new game event $e');
