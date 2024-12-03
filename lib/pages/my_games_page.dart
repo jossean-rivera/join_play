@@ -107,6 +107,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                   )
                                 : ElevatedButton(
                                     onPressed: () async {
+                                      // Unregister the user from the event
                                       await widget.firebaseService
                                           .unregisterFromEvent(
                                         event.id!,

@@ -47,19 +47,20 @@ class FirebaseService {
   // Register a user for an event
   Future<void> registerForEvent(String eventId, String userId) async {
   try {
-    final eventDoc = _firestore.collection('events-collection').doc(eventId);
+    final eventDocRef = _firestore.collection('events-collection').doc(eventId);
+    final userDocRef = _firestore.collection('users').doc(userId);
 
-    // Add user to the event's registered users list and decrement available slots
-    await eventDoc.update({
-      'registeredUsers': FieldValue.arrayUnion([userId]),
+    // Add user to the event's registered users list (as a string) and decrement available slots
+    await eventDocRef.update({
+      'registeredUsers': FieldValue.arrayUnion([userId]), // Still stored as string in events-collection
       'slotsAvailable': FieldValue.increment(-1), // Decrement available slots
     });
 
     // Add a new document in the registration collection
     final registrationDoc = _firestore.collection('registration').doc();
     await registrationDoc.set({
-      'eventId': eventId,
-      'userId': userId,
+      'eventId': eventDocRef, // Store as DocumentReference
+      'userId': userDocRef,   // Store as DocumentReference
       'timestamp': FieldValue.serverTimestamp(), // Optional: track registration time
     });
 
@@ -70,11 +71,17 @@ class FirebaseService {
 }
 
 
+
+
   /// Gets the user reference from the database based on the given user id.
   DocumentReference<Map<String, dynamic>> getUserDocumentReference(
       String userId) {
     return _firestore.collection('users').doc(userId);
   }
+  DocumentReference<Map<String, dynamic>> getEventDocumentReference(String eventId) {
+  return _firestore.collection('events-collection').doc(eventId);
+  }
+
 
   /// Creates game event in database
   Future<String?> createEvent(SportEvent event) async {
@@ -117,104 +124,126 @@ class FirebaseService {
   }
 
   Future<void> unregisterFromEvent(String eventId, String userId) async {
-    try {
-      // Reference to the event document
-      final eventDoc = _firestore.collection('events-collection').doc(eventId);
-
-      // Update the registeredUsers array and increment slotsAvailable
-      await eventDoc.update({
-        'registeredUsers': FieldValue.arrayRemove([userId]),
-        'slotsAvailable': FieldValue.increment(1), // Increment available slots
-      });
-
-      // Query and delete the user's registration entry from the registration collection
-      final registrationQuery = await _firestore
-          .collection('registration')
-          .where('eventId', isEqualTo: eventId)
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      for (var doc in registrationQuery.docs) {
-        await doc.reference.delete(); // Delete registration document
-      }
-
-      print('User $userId successfully unregistered from event $eventId');
-    } catch (e) {
-      print('Error unregistering from event: $e');
-    }
-  }
-  Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
   try {
-    // Query the registration collection to fetch event IDs for the user
+    final eventDocRef = _firestore.collection('events-collection').doc(eventId);
+    final userDocRef = _firestore.collection('users').doc(userId);
+
+    // Update the registeredUsers array in events-collection and increment slotsAvailable
+    await eventDocRef.update({
+      'registeredUsers': FieldValue.arrayRemove([userId]), // Still stored as string in events-collection
+      'slotsAvailable': FieldValue.increment(1), // Increment available slots
+    });
+
+    // Query the registration collection for entries with matching DocumentReferences
     final registrationQuery = await _firestore
         .collection('registration')
-        .where('userId', isEqualTo: userId)
+        .where('eventId', isEqualTo: eventDocRef) // Compare as DocumentReference
+        .where('userId', isEqualTo: userDocRef)   // Compare as DocumentReference
         .get();
 
-    final eventIds = registrationQuery.docs.map((doc) {
+    // Delete the matching registration document(s)
+    for (var doc in registrationQuery.docs) {
+      await doc.reference.delete(); // Delete registration document
+    }
+
+    print('User $userId successfully unregistered from event $eventId');
+  } catch (e) {
+    print('Error unregistering from event: $e');
+  }
+}
+
+Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
+  try {
+    // Reference to the user document
+    final userDocRef = _firestore.collection('users').doc(userId);
+
+    // Query the registration collection to fetch event DocumentReferences for the user
+    final registrationQuery = await _firestore
+        .collection('registration')
+        .where('userId', isEqualTo: userDocRef) // Use DocumentReference for userId
+        .get();
+
+    final eventDocRefs = registrationQuery.docs.map((doc) {
       final data = doc.data();
-      return data['eventId'] as String;
+      return data['eventId'] as DocumentReference; // Fetch as DocumentReference
     }).toList();
 
-    // Ensure eventIds is not empty
-    if (eventIds.isEmpty) return [];
+    // Ensure eventDocRefs is not empty
+    if (eventDocRefs.isEmpty) return [];
 
-    // Fetch all events from the collection and filter manually
-    final eventsSnapshot = await _firestore.collection('events-collection').get();
+    // Fetch all events corresponding to the DocumentReferences
+    final events = await Future.wait(
+      eventDocRefs.map((eventDocRef) async {
+        final eventSnapshot = await eventDocRef.get();
+        if (!eventSnapshot.exists) return null;
 
-    final filteredEvents = eventsSnapshot.docs.where((doc) {
-      final data = doc.data();
-      final eventDateTime = data['dateTime'] as Timestamp;
-      final isFutureEvent = eventDateTime.toDate().isAfter(DateTime.now());
-      return eventIds.contains(doc.id) && (showFutureEvents ? isFutureEvent : !isFutureEvent);
-    }).toList();
+        final data = eventSnapshot.data() as Map<String, dynamic>;
+        data['id'] = eventSnapshot.id;
 
-    return filteredEvents.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
-      return SportEvent.fromMap(data);
-    }).toList();
+        // Filter future or past events based on showFutureEvents
+        final eventDateTime = (data['dateTime'] as Timestamp).toDate();
+        final isFutureEvent = eventDateTime.isAfter(DateTime.now());
+        if (showFutureEvents ? isFutureEvent : !isFutureEvent) {
+          return SportEvent.fromMap(data);
+        }
+        return null;
+      }),
+    );
+
+    // Filter out null results and return the list of SportEvent
+    return events.whereType<SportEvent>().toList();
   } catch (e) {
     print('Error fetching registered events: $e');
     return [];
   }
 }
-  Future<List<SportEvent>> getUserPastEvents(String userId) async {
-    try {
-      // Query the registration collection to fetch event IDs for the user
-      final registrationQuery = await _firestore
-          .collection('registration')
-          .where('userId', isEqualTo: userId)
-          .get();
 
-      final eventIds = registrationQuery.docs.map((doc) {
-        final data = doc.data();
-        return data['eventId'] as String;
-      }).toList();
+Future<List<SportEvent>> getUserPastEvents(String userId) async {
+  try {
+    // Reference to the user document
+    final userDocRef = _firestore.collection('users').doc(userId);
 
-      // Ensure eventIds is not empty
-      if (eventIds.isEmpty) return [];
+    // Query the registration collection to fetch event DocumentReferences for the user
+    final registrationQuery = await _firestore
+        .collection('registration')
+        .where('userId', isEqualTo: userDocRef) // Use DocumentReference for userId
+        .get();
 
-      // Fetch all events and filter manually for past events
-      final eventsSnapshot = await _firestore.collection('events-collection').get();
+    final eventDocRefs = registrationQuery.docs.map((doc) {
+      final data = doc.data();
+      return data['eventId'] as DocumentReference; // Fetch as DocumentReference
+    }).toList();
 
-      final pastEvents = eventsSnapshot.docs.where((doc) {
-        final data = doc.data();
-        final eventDateTime = data['dateTime'] as Timestamp;
-        final isPastEvent = eventDateTime.toDate().isBefore(DateTime.now());
-        return eventIds.contains(doc.id) && isPastEvent;
-      }).toList();
+    // Ensure eventDocRefs is not empty
+    if (eventDocRefs.isEmpty) return [];
 
-      return pastEvents.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return SportEvent.fromMap(data);
-      }).toList();
-    } catch (e) {
-      print('Error fetching past events: $e');
-      return [];
-    }
+    // Fetch all events corresponding to the DocumentReferences
+    final pastEvents = await Future.wait(
+      eventDocRefs.map((eventDocRef) async {
+        final eventSnapshot = await eventDocRef.get();
+        if (!eventSnapshot.exists) return null;
+
+        final data = eventSnapshot.data() as Map<String, dynamic>;
+        data['id'] = eventSnapshot.id;
+
+        // Check if the event is a past event
+        final eventDateTime = (data['dateTime'] as Timestamp).toDate();
+        final isPastEvent = eventDateTime.isBefore(DateTime.now());
+        if (isPastEvent) {
+          return SportEvent.fromMap(data);
+        }
+        return null;
+      }),
+    );
+
+    // Filter out null results and return the list of SportEvent
+    return pastEvents.whereType<SportEvent>().toList();
+  } catch (e) {
+    print('Error fetching past events: $e');
+    return [];
   }
+}
+
   Future<List<SportEvent>> getHostedEvents(String userId) async {
   try {
     // Query the 'host' collection to get all event IDs where the user is the host

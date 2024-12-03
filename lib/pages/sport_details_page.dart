@@ -142,66 +142,69 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                       final isRegistered =
                           event.registeredUsers?.contains(currentUserId) ?? false;
                       
-                      return Card(
-                        margin: const EdgeInsets.all(8.0),
-                        child: ListTile(
-                          title: Text(event.name ?? ''),
-                          subtitle: Text(
-                            "Location: ${event.location}\n"
-                            "Time: ${event.dateTime?.toDate()}\n"
-                            "Slots Available: ${event.slotsAvailable}\n"
-                            "Host: ${event.hostName}",
-                          ),
-                          isThreeLine: true,
-                          trailing: (event.slotsAvailable ?? 0) > 0
-                              ? FilledButton(
-                                  onPressed: () async {
-                                    if (isRegistered) {
-                                      await widget.firebaseService
-                                          .unregisterFromEvent(event.id!, currentUserId);
-                                      setState(() {});
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                "Unregistered from ${event.name}")),
-                                      );
-                                    } else {
-                                      await widget.firebaseService
-                                            .registerForEvent(
-                                          event.id!, // Event ID
-                                          widget.authenticationBloc.sportUser!
-                                              .uuid, // Logged-in user ID
-                                        );
+              return Card(
+                margin: const EdgeInsets.all(8.0),
+                child: ListTile(
+                  title: Text(event.name ?? ''),
+                  subtitle: Text(
+                    "Location: ${event.location}\n"
+                    "Time: ${event.dateTime?.toDate()}\n"
+                    "Slots Available: ${event.slotsAvailable}\n"
+                    "Host: ${event.hostName}",
+                  ),
+                  isThreeLine: true,
+                  trailing: (event.slotsAvailable ?? 0) > 0
+                  ? FilledButton(
+                      onPressed: () async {
+                        final currentUserDocRef = widget.firebaseService.getUserDocumentReference(
+                          widget.authenticationBloc.sportUser?.uuid ?? '',
+                        );
 
-                                        // Go to the confirmation page with animation
-                                        GoRouter.of(context).goNamed(
-                                          RouteNames.registrationConfirmation,
-                                          pathParameters: {
-                                            'sportId': event.sportId!
-                                          },
-                                        );
-                                      }
-                                    },
-                                    
-                                  child: Text(
-                                    isRegistered? "Unregister" : "Register",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary),
-                                  ),
-                                )
-                              : Text(
-                                  "Full",
-                                  style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.error),
-                                ),
+                        final eventDocRef = widget.firebaseService.getEventDocumentReference(event.id!);
+
+                        if (isRegistered) {
+                          // Unregister the user
+                          await widget.firebaseService.unregisterFromEvent(
+                            eventDocRef.id, // Pass eventId
+                            currentUserDocRef.id, // Pass userId
+                          );
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Unregistered from ${event.name}")),
+                          );
+                        } else {
+                          // Register the user
+                          await widget.firebaseService.registerForEvent(
+                            eventDocRef.id, // Pass eventId
+                            currentUserDocRef.id, // Pass userId
+                          );
+                          // Navigate to the confirmation page with animation
+                          GoRouter.of(context).goNamed(
+                            RouteNames.registrationConfirmation,
+                            pathParameters: {
+                              'sportId': event.sportId!,
+                            },
+                          );
+                        }
+                      },
+                      child: Text(
+                        isRegistered ? "Unregister" : "Register",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                      ),
+                    )
+                  : Text(
+                      "Full",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    )
+                      
                         ),
-                      );
+                );
+
+
                     },
                   ),
                   // Change location button section
