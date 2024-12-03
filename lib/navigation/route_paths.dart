@@ -14,6 +14,8 @@ class RoutePaths {
   static const String registrationConfirmation = "/confirmed";
   static const String gameForm = "/gameForm";
 
+  static const String splashScreen = "/splashScreen";
+
   static String getTitleFromRoute(GoRouterState state) {
     final routePath = state.fullPath;
 

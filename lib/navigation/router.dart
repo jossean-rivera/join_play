@@ -13,6 +13,7 @@ import '../pages/game_form.dart';
 import '../repositories/addresses_repository.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
+import '../pages/splashscreen.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
 import 'scaffold_with_nav_bar.dart';
@@ -25,16 +26,23 @@ final GlobalKey<NavigatorState> shellNavigatorKey =
 
 GoRouter createRouter(AuthenticationBloc authenticationBloc) {
   return GoRouter(
-    initialLocation: RoutePaths.login, // Set the login page as the stating page
+    initialLocation: RoutePaths.splashScreen, // Set the login page as the stating page
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
+      if (state.location == '/splashScreen'){
+        if (authenticationBloc.state is AuthenticationLoggedIn){
+          return RoutePaths.sports;
+        } else if (authenticationBloc.state is AuthenticationLoggedOut){
+          return RoutePaths.login;
+        }
+      }
       //  Check if the current bloc state is for logging out
-      if (authenticationBloc.state is AuthenticationLoggedOut) {
+      if (authenticationBloc.state is AuthenticationLoggedOut && state.fullPath?.startsWith(RoutePaths.login) != true) {
         //  If the user is not on the login page, then redirect the user to /login
         if (state.fullPath?.startsWith(RoutePaths.login) != true) {
           return RoutePaths.login;
         }
-      } else if (authenticationBloc.state is AuthenticationLoggedIn) {
+      } else if (authenticationBloc.state is AuthenticationLoggedIn && state.fullPath?.startsWith(RoutePaths.login) == true) {
         //  If the event for logging in raise, and the user is in the login page,
         //  then redirect to the home page
         if (state.fullPath?.startsWith(RoutePaths.login) == true) {
