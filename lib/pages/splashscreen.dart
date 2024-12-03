@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Animation Controller for bounce
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 5000),
     );
 
     // Bouncing Animation
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     // Navigate after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         // Use GoRouter to navigate
         context.go('/'); // Redirect logic in router will handle the target route

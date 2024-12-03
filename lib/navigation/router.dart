@@ -29,7 +29,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
     initialLocation: RoutePaths.splashScreen, // Set the login page as the stating page
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
-      if (state.location == '/splashScreen'){
+      if (state.uri.path == '/splashScreen'){
         if (authenticationBloc.state is AuthenticationLoggedIn){
           return RoutePaths.sports;
         } else if (authenticationBloc.state is AuthenticationLoggedOut){
@@ -54,6 +54,11 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
     },
     navigatorKey: rootNavigatorKey,
     routes: [
+      GoRoute(
+        path: RoutePaths.splashScreen,
+        name: RouteNames.splashScreen,
+        builder: (context, state) => SplashScreen(), 
+      ),
       GoRoute(
         path: RoutePaths.login,
         name: RouteNames.login,
