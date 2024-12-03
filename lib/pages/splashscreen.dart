@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:join_play/navigation/route_names.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -28,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Animation Controller for bounce
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 500),
     );
 
     // Bouncing Animation
@@ -53,11 +54,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate after 2 seconds
-    Future.delayed(const Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        // Use GoRouter to navigate
-        context.go('/'); // Redirect logic in router will handle the target route
+        context.goNamed(RouteNames.login); // Redirect handled by router
       }
     });
   }

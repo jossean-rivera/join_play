@@ -30,12 +30,8 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
       if (state.uri.path == '/splashScreen'){
-        if (authenticationBloc.state is AuthenticationLoggedIn){
-          return RoutePaths.sports;
-        } else if (authenticationBloc.state is AuthenticationLoggedOut){
-          return RoutePaths.login;
+          return null;
         }
-      }
       //  Check if the current bloc state is for logging out
       if (authenticationBloc.state is AuthenticationLoggedOut && state.fullPath?.startsWith(RoutePaths.login) != true) {
         //  If the user is not on the login page, then redirect the user to /login
