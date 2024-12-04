@@ -1,12 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:join_play/models/sport.dart';
 import 'package:join_play/models/sport_event.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
-  FirebaseService(this._firestore);
+  FirebaseService(this._firestore, this._storage);
+
 
   // Fetch all sports
   Future<List<Map<String, dynamic>>> getSports() async {
@@ -301,15 +307,97 @@ Future<List<String>> getUserNames(List<String> userIds) async {
     return [];
   }
 }
+  /// Uploads a profile picture to Firebase Storage and updates the Firestore user document
+Future<void> uploadProfilePicture(String userId, String filePath) async {
+  try {
+    final File imageFile = File(filePath);
+
+    // Reference to the storage location
+    final storageRef = _storage.ref().child('profile_pictures/$userId.jpg');
+
+    // Upload the file to Firebase Storage
+    await storageRef.putFile(imageFile);
+
+    // Get the download URL of the uploaded file
+    final String downloadUrl = await storageRef.getDownloadURL();
+
+    // Update the user document in Firestore with the download URL
+    await _firestore.collection('users').doc(userId).update({
+      'profilePicture': downloadUrl,
+    });
+
+    print('Profile picture uploaded successfully: $downloadUrl');
+  } catch (e) {
+    print('Error uploading profile picture: $e');
+    throw e;
+  }
+}
 
 
+  /// Deletes the profile picture from Firebase Storage and removes it from Firestore
+  Future<void> deleteProfilePicture(String userId) async {
+    try {
+      // Reference to the storage location
+      final storageRef = _storage.ref().child('profile_pictures/$userId.jpg');
 
+      // Delete the image from Firebase Storage
+      await storageRef.delete();
 
+      // Remove the profilePicture field from the Firestore user document
+      await _firestore.collection('users').doc(userId).update({
+        'profilePicture': FieldValue.delete(),
+      });
 
+      print('Profile picture deleted successfully');
+    } catch (e) {
+      print('Error deleting profile picture: $e');
+    }
+  }
+  Future<DocumentSnapshot<Map<String, dynamic>>> _getUserDocument(String userId) {
+  return _firestore.collection('users').doc(userId).get();
+}
 
+  /// Fetches the current user's profile picture URL
+  Future<String?> getProfilePicture(String userId) async {
+  try {
+    final userDoc = await _getUserDocument(userId);
+    if (userDoc.exists) {
+      final data = userDoc.data(); // Safely retrieve data
+      if (data != null && data['profilePicture'] != null) {
+        return data['profilePicture'] as String; // Return profile picture URL
+      }
+    }
+    return null; // Return null if no profile picture is found
+  } catch (e) {
+    print('Error fetching profile picture: $e');
+    return null; // Return null in case of an error
+  }
+}
+// Update user details
+  Future<void> updateUserProfile(String userId, String name, String email) async {
+    await _firestore.collection('users').doc(userId).update({
+      'name': name,
+      'email': email,
+    });
+  }
 
+  // Delete user account
+  Future<void> deleteAccount(String userId) async {
+    // Delete user document
+    await _firestore.collection('users').doc(userId).delete();
 
+    // Delete user authentication
+    await FirebaseAuth.instance.currentUser?.delete();
+  }
 
 
 
 }
+
+
+
+
+
+
+
+
