@@ -17,7 +17,9 @@ class _SplashScreenState extends State<SplashScreen>
     Icons.sports_basketball,
     Icons.sports_volleyball,
     Icons.sports_baseball,
-    Icons.sports_tennis,
+    Icons.sports_soccer,
+    Icons.sports_football,
+    Icons.sports_rugby,
   ];
 
   int _currentIconIndex = 0;
@@ -29,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Animation Controller for bounce
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 100), // Adjust for smooth bounce
     );
 
     // Bouncing Animation
@@ -38,23 +40,27 @@ class _SplashScreenState extends State<SplashScreen>
       end: Offset(0, -0.5),
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.bounceOut,
+      curve: Curves.bounceOut
     ));
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
+        // Reverse the bounce animation
+        _controller.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        // Change the ball after the full bounce (up and down)
         setState(() {
           _currentIconIndex = (_currentIconIndex + 1) % _sportsIcons.length;
         });
-        _controller.reverse();
-      } else if (status == AnimationStatus.dismissed) {
+        // Start the next bounce
         _controller.forward();
       }
     });
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 2), () {
+    // Redirect to the next screen after 3 seconds
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         context.goNamed(RouteNames.login); // Redirect handled by router
       }
@@ -70,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueAccent,
+      backgroundColor: Colors.white,
       body: Center(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -80,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
               style: TextStyle(
                 fontSize: 50,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.greenAccent,
               ),
             ),
             SlideTransition(
@@ -96,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
               style: TextStyle(
                 fontSize: 50,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.greenAccent,
               ),
             ),
           ],
