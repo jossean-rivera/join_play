@@ -120,7 +120,10 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.profile,
             name: RouteNames.profile,
-            builder: (context, state) => const ProfilePage(),
+            builder: (context, state) => ProfilePage(
+              firebaseService: context.read<FirebaseService>(), // Pass the FirebaseService
+              authenticationBloc: context.read<AuthenticationBloc>(),
+            ),
           ),
         ],
       ),
