@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:join_play/navigation/route_names.dart';
 import 'package:rive/rive.dart';
 import 'package:confetti/confetti.dart';
+
+import '../navigation/route_names.dart';
 
 class RegistrationConfirmationPage extends StatefulWidget {
   const RegistrationConfirmationPage({super.key});
@@ -33,7 +34,9 @@ class _RegistrationConfirmationPageState
 
     // Initialize animation controller that manages the label
     _labelController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
 
     CurvedAnimation curvedAnimation =
         CurvedAnimation(parent: _labelController, curve: Curves.easeInBack);
@@ -44,7 +47,7 @@ class _RegistrationConfirmationPageState
     _sizeAnimation =
         Tween<double>(begin: 1.0, end: 1.4).animate(curvedAnimation);
 
-    // Trigger an initail cofetti
+    // Trigger initial confetti
     _confettiController.play();
 
     // Initialize Rive animation controller with the animation named 'idle'
@@ -53,37 +56,29 @@ class _RegistrationConfirmationPageState
     // Add listener to the Rive controller to monitor progress
     _riveController.isActiveChanged.addListener(() {
       if (_riveController.isActive) {
-        // Start monitoring progress
         WidgetsBinding.instance.addPostFrameCallback(_trackProgress);
       }
     });
   }
 
-  /// Track the progress of the rive animation using the progress field
-  /// When the animation is close to 50% that is when the ball is bouncing
-  /// trigger confetti when the ball bounces
   void _trackProgress(_) {
     if (_riveController.instance != null) {
       final progress = _riveController.instance!.progress;
 
-      // Check if the progress is within the target range close to 50%
       if (progress >= 0.48 && progress <= 0.52 && !_confettiTriggered) {
         _confettiController.play();
         _confettiTriggered = true;
       }
 
-      // Trigger label animation once right before starting to bounce
       if (!_labelTriggered && progress >= 0.45 && progress <= 0.48) {
         _labelController.forward();
         _labelTriggered = true;
       }
 
-      // Continue tracking while the animation is active
       if (_riveController.isActive) {
         WidgetsBinding.instance.addPostFrameCallback(_trackProgress);
       }
 
-      // Reset confetti trigger if animation loops
       if (progress >= 0.95) {
         _confettiTriggered = false;
       }
@@ -92,14 +87,18 @@ class _RegistrationConfirmationPageState
 
   @override
   void dispose() {
-    _confettiController.dispose(); // Dispose of controllers
+    _confettiController.dispose();
+    _labelController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Confirmation'),
+      ),
+      child: Stack(
         children: [
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -110,28 +109,31 @@ class _RegistrationConfirmationPageState
                   animation: _labelController,
                   builder: (context, child) {
                     return Transform.translate(
-                        offset: Offset(0, _elevationAnimation.value),
-                        child: Transform.scale(
-                          scale: _sizeAnimation.value,
-                          child: Text(
-                            "You're going to the game!",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ));
+                      offset: Offset(0, _elevationAnimation.value),
+                      child: Transform.scale(
+                        scale: _sizeAnimation.value,
+                        child: Text(
+                          "You're going to the game!",
+                          textAlign: TextAlign.center,
+                          style: CupertinoTheme.of(context)
+                              .textTheme
+                              .navLargeTitleTextStyle,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
               const SizedBox(height: 30),
               Center(
-                child: Container(
+                child: SizedBox(
                   width: 300,
                   height: 300,
                   child: RiveAnimation.asset(
                     'assets/animations/basketball_bounce.riv',
                     controllers: [_riveController],
                     onInit: (_) {
-                      _riveController.isActive = true; // Start animation
+                      _riveController.isActive = true;
                     },
                   ),
                 ),
@@ -141,30 +143,30 @@ class _RegistrationConfirmationPageState
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    FilledButton(
+                    CupertinoButton.filled(
                       onPressed: () {
-                        context
-                            .goNamed(RouteNames.myGames); // Navigate to /myGame
+                        context.goNamed(RouteNames.myGames);
                       },
                       child: const Text('Check my games'),
                     ),
                     const SizedBox(height: 24),
-                    Text('Looking for more game?', style: Theme.of(context).textTheme.bodyMedium),
-                    TextButton(
+                    Text(
+                      'Looking for more games?',
+                      style: CupertinoTheme.of(context).textTheme.textStyle,
+                    ),
+                    CupertinoButton(
                       onPressed: () {
-                        context
-                            .goNamed(RouteNames.sports); // Navigate to /sports
+                        context.goNamed(RouteNames.sports);
                       },
                       child: const Text('Go back.'),
                     ),
-                    const SizedBox(height: 10),
                   ],
                 ),
               ),
             ],
           ),
           Align(
-            alignment: const Alignment(0.0, 0.22), // Align with shadow of ball
+            alignment: const Alignment(0.0, 0.22),
             child: ConfettiWidget(
               confettiController: _confettiController,
               blastDirectionality: BlastDirectionality.explosive,
@@ -174,12 +176,12 @@ class _RegistrationConfirmationPageState
               minBlastForce: 30,
               gravity: 0.3,
               colors: const [
-                Colors.red,
-                Colors.blue,
-                Colors.green,
-                Colors.orange,
-                Colors.purple,
-                Colors.yellow,
+                CupertinoColors.systemRed,
+                CupertinoColors.activeBlue,
+                CupertinoColors.systemGreen,
+                CupertinoColors.systemOrange,
+                CupertinoColors.systemPurple,
+                CupertinoColors.systemYellow,
               ],
               shouldLoop: false,
             ),
@@ -189,3 +191,4 @@ class _RegistrationConfirmationPageState
     );
   }
 }
+    

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -10,14 +10,14 @@ import '../secrets.dart';
 class AddressesRepository {
   final _placesApi = GoogleMapsPlaces(apiKey: googleApiKey);
 
-  /// Searches for addresses that match the given search input
-  Future<List<PlacesSearchResult>> SearchAddress(String searchInput) async {
+  /// Searches for addresses that match the given search input.
+  Future<List<PlacesSearchResult>> searchAddress(String searchInput) async {
     PlacesSearchResponse search = await _placesApi.searchByText(searchInput);
     if (search.status == "OK" && search.results.isNotEmpty) {
       return search.results;
     }
     debugPrint(
-        'Did not get a successful response for address suggesstions. Error: ${search.errorMessage}');
+        'Did not get a successful response for address suggestions. Error: ${search.errorMessage}');
     return [];
   }
 
@@ -30,24 +30,20 @@ class AddressesRepository {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      //     content: Text(
-      //         'Location services are disabled. Please enable the services')));
+      debugPrint('Location services are disabled. Please enable them.');
       return false;
     }
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //     const SnackBar(content: Text('Location permissions are denied')));
+        debugPrint('Location permissions are denied.');
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      //     content: Text(
-      //         'Location permissions are permanently denied, we cannot request permissions.')));
+      debugPrint(
+          'Location permissions are permanently denied. Cannot request permissions.');
       return false;
     }
     return true;
@@ -62,14 +58,14 @@ class AddressesRepository {
             const LocationSettings(accuracy: LocationAccuracy.high));
   }
 
-  /// Gets placemark where you can get the address details from a position object
+  /// Gets a placemark where you can retrieve address details from a position object.
   Future<Placemark?> getAddressFromPosition(Position position) async {
     List<Placemark> placemarks =
         await placemarkFromCoordinates(position.latitude, position.longitude);
-    return placemarks[0];
+    return placemarks.isNotEmpty ? placemarks[0] : null;
   }
 
-  /// Gets details for a place in the google place API. 
+  /// Gets details for a place from the Google Places API using a place ID.
   Future<PlaceDetails?> getPlaceDetails(String placeId) async {
     final placeDetails = await _placesApi.getDetailsByPlaceId(placeId);
 
@@ -77,12 +73,12 @@ class AddressesRepository {
       return placeDetails.result;
     }
 
-    debugPrint('Failure while getting place details from API. Error ${placeDetails.errorMessage}');
+    debugPrint(
+        'Failure while getting place details from API. Error: ${placeDetails.errorMessage}');
     return null;
   }
 
-  /// Use Haversine formula to calculate the distance between two coordinates.
-  /// See more: https://stackoverflow.com/a/27943
+  /// Calculates the distance between two coordinates using the Haversine formula.
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const double earthRadius = 6371; // Earth's radius in km.
     double dLat = _degreesToRadians(lat2 - lat1);
@@ -98,6 +94,7 @@ class AddressesRepository {
     return earthRadius * c;
   }
 
+  /// Converts degrees to radians.
   double _degreesToRadians(double degrees) {
     return degrees * pi / 180;
   }

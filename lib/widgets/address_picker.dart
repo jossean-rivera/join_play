@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_webservice/places.dart';
 
@@ -13,13 +13,13 @@ class AddressPicker extends StatefulWidget {
   final void Function(String locationTitle, String location, double latitude,
       double longitude) onSuccess;
 
-  AddressPicker(
-      {super.key,
-      required this.addressesRepository,
-      TextEditingController? addressController,
-      required this.onSuccess,
-      this.onError})
-      : addressController = addressController ?? TextEditingController();
+  AddressPicker({
+    super.key,
+    required this.addressesRepository,
+    TextEditingController? addressController,
+    required this.onSuccess,
+    this.onError,
+  }) : addressController = addressController ?? TextEditingController();
 
   @override
   State<AddressPicker> createState() => _AddressPickerState();
@@ -36,14 +36,11 @@ class _AddressPickerState extends State<AddressPicker> {
     return TypeAheadField<PlacesSearchResult>(
       controller: widget.addressController,
       builder: (context, controller, focusNode) {
-        return TextFormField(
+        return CupertinoTextFormFieldRow(
           controller: controller,
           focusNode: focusNode,
-          autofocus: false,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Enter address',
-          ),
+          placeholder: 'Enter address',
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter a location';
@@ -63,7 +60,7 @@ class _AddressPickerState extends State<AddressPicker> {
         return await _fetchAddressSuggestionsFromPlacesApi(pattern);
       },
       itemBuilder: (context, suggestion) {
-        return ListTile(
+        return CupertinoListTile(
           title: Text(suggestion.name),
           subtitle: Text(suggestion.formattedAddress ?? suggestion.name),
         );
@@ -75,7 +72,7 @@ class _AddressPickerState extends State<AddressPicker> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Start typing to see suggestions',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: CupertinoTheme.of(context).textTheme.textStyle,
             ),
           );
         }
@@ -84,10 +81,10 @@ class _AddressPickerState extends State<AddressPicker> {
           padding: const EdgeInsets.all(16.0),
           child: Text(
             'Could not find address',
-            style: Theme.of(context)
+            style: CupertinoTheme.of(context)
                 .textTheme
-                .bodyLarge
-                ?.copyWith(color: CustomColors.lightError),
+                .textStyle
+                .copyWith(color: CupertinoColors.destructiveRed),
           ),
         );
       },
@@ -141,7 +138,7 @@ class _AddressPickerState extends State<AddressPicker> {
       String input) async {
     try {
       if (input.isEmpty) return [];
-      return widget.addressesRepository.SearchAddress(input);
+      return widget.addressesRepository.searchAddress(input);
     } catch (e) {
       debugPrint('Failed to get address suggestions $e');
       return [];

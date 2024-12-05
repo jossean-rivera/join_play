@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:join_play/custom_theme_data.dart';
+import 'package:flutter/cupertino.dart';
+import '../../../custom_theme_data.dart';
 
 class SignInView extends StatefulWidget {
   final Future<String?> Function(String email, String password)
@@ -30,7 +30,7 @@ class _SignInViewState extends State<SignInView> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   String? errorMessage;
   bool isSubmitting = false;
-  CrossFadeState crossFadeState = CrossFadeState.showFirst;
+  bool isPasswordVisible = false;
 
   @override
   void initState() {
@@ -43,45 +43,30 @@ class _SignInViewState extends State<SignInView> {
     passwordController.addListener(_clearError);
   }
 
-  /// Updates the state to remove the error label from the UI
   void _clearError() {
     if (errorMessage != null) {
       setState(() {
         errorMessage = null;
-
-        // Use animated cross fade to hide the error label
-        crossFadeState = CrossFadeState.showFirst;
       });
     }
   }
 
-  /// Method to invoke the loging callback and update the UI accordingly
   Future<void> _handleLogin() async {
     if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;
         errorMessage = null;
-
-        // Use animated cross fade to hide the error label
-        crossFadeState = CrossFadeState.showFirst;
       });
 
-      // Get email and password from the form
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
 
       try {
-        // Invoke login callback
         final error = await widget.loginSubmitCallback(email, password);
 
-        // If there's a login, error, then display the error label
         if (error != null) {
           setState(() {
-            // Set the text of the error label
             errorMessage = error;
-
-            // Use animated cross fade to show the error label
-            crossFadeState = CrossFadeState.showSecond;
           });
         }
       } finally {
@@ -101,132 +86,163 @@ class _SignInViewState extends State<SignInView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
+    return CupertinoPageScaffold(
+      child: Padding(
         padding: const EdgeInsets.all(32.0),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo
-              Center(
-                child: Image.asset(
-                  'assets/images/logo-darker.png',
-                  height: 300,
-                ),
-              ),
-              Text('LOG INTO YOUR ACCOUNT',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 24), // Add some spacing below the logo
-
-              // Error message
-              AnimatedCrossFade(
-                crossFadeState: crossFadeState,
-                duration: const Duration(milliseconds: 300),
-                firstChild: Container(),
-                secondChild: SizedBox(
-                  width: double.infinity,
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    margin: const EdgeInsets.only(bottom: 16.0),
-                    decoration: BoxDecoration(
-                      color: CustomColors.lightError,
-                      borderRadius: BorderRadius.circular(4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Main content: Logo and fields
+            Expanded(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Logo
+                    Center(
+                      child: Image.asset(
+                        'assets/images/logo-darker.png',
+                        height: 200,
+                      ),
                     ),
-                    child: Text(
-                      errorMessage ?? '',
-                      style: const TextStyle(color: CustomColors.darkerError),
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 24),
+
+                    // Error message
+                    if (errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          color: CustomColors.lightError,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(color: CustomColors.darkerError),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                    // Email text field
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: CupertinoColors.systemGrey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: CupertinoTextField(
+                        controller: emailController,
+                        placeholder: "Email",
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(fontSize: 16),
+                        decoration: null, // Remove default Cupertino border
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              // Email text field
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your email";
-                  }
-                  final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                  if (!emailRegex.hasMatch(value)) {
-                    return "Please enter a valid email address";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-              // Password text field
-              TextFormField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your password";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
+                    // Password text field with toggle
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: CupertinoColors.systemGrey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoTextField(
+                              controller: passwordController,
+                              obscureText: !isPasswordVisible,
+                              placeholder: "Password",
+                              style: const TextStyle(fontSize: 16),
+                              decoration: null, // Remove default Cupertino border
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isPasswordVisible = !isPasswordVisible;
+                              });
+                            },
+                            child: Icon(
+                              isPasswordVisible
+                                  ? CupertinoIcons.eye
+                                  : CupertinoIcons.eye_slash,
+                              color: CupertinoColors.systemGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-              // Login button
-              FilledButton(
-                onPressed: isSubmitting ? null : _handleLogin,
-                child: isSubmitting
-                    ?
-                    // Show loading icon when submitting
-                    const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.0,
-                      )
-                    :
-                    // Display log in text in button when not submitting
-                    const Text("Log In"),
+                    // Login button
+                    CupertinoButton.filled(
+                      onPressed: isSubmitting ? null : _handleLogin,
+                      borderRadius: BorderRadius.circular(8),
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: isSubmitting
+                          ? const CupertinoActivityIndicator()
+                          : const Text(
+                              "Log In",
+                              style: TextStyle(fontSize: 18),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text("Don't have an account?"),
-                  TextButton(
-                    onPressed: () {
-                      String email = emailController.text.trim();
-                      String password = passwordController.text.trim();
-                      widget.signUpRequestCallback(email, password);
-                    },
-                    child: const Text("Sign Up"),
-                  )
-                ],
-              ),
-              Row(
-                children: [
-                  const Text("Forgot password?"),
-                  TextButton(
-                    onPressed: () {
-                      String email = emailController.text.trim();
-                      widget.forgotPasswordRequestCallback(email);
-                    },
-                    child: const Text("Reset"),
-                  )
-                ],
-              ),
-            ],
-          ),
+            ),
+
+            // Footer links at the bottom
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account? "),
+                    CupertinoButton(
+                      onPressed: () {
+                        String email = emailController.text.trim();
+                        String password = passwordController.text.trim();
+                        widget.signUpRequestCallback(email, password);
+                      },
+                      padding: EdgeInsets.zero,
+                      child: Text(
+                        "Sign Up",
+                        style: TextStyle(
+                          color: CupertinoColors.activeBlue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Forgot password? "),
+                    CupertinoButton(
+                      onPressed: () {
+                        String email = emailController.text.trim();
+                        widget.forgotPasswordRequestCallback(email);
+                      },
+                      padding: EdgeInsets.zero,
+                      child: Text(
+                        "Reset",
+                        style: TextStyle(
+                          color: CupertinoColors.activeBlue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

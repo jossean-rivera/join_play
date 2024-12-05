@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../navigation/route_paths.dart';
@@ -25,9 +25,9 @@ class _InitalLoadingViewState extends State<InitalLoadingView> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(), // Loading icon
+    return const CupertinoPageScaffold(
+      child: Center(
+        child: CupertinoActivityIndicator(), // Cupertino-style loading icon
       ),
     );
   }

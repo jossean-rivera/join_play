@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
 import '../navigation/route_names.dart';
@@ -9,7 +9,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: FilledButton(
+      child: CupertinoButton.filled(
         child: const Text("Go to Profile"),
         onPressed: () {
           context.goNamed(RouteNames.profile);

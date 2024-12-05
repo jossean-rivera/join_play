@@ -1,6 +1,4 @@
-
-import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_webservice/places.dart' hide Location;
 import 'package:geolocator/geolocator.dart';
@@ -25,83 +23,63 @@ class _LocationPageState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(title: const Text("Location Page")),
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('LAT: ${_currentPosition?.latitude ?? ''}'),
-                  Text('LNG: ${_currentPosition?.longitude ?? ''}'),
-                  Text('ADDRESS: ${_currentAddress ?? ''}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _getCurrentPosition,
-                    child: const Text("Get Current Location"),
-                  ),
-                  const SizedBox(height: 32),
-                  TypeAheadField<PlacesSearchResult>(
-                    controller: _addressController,
-                    builder: (context, controller, focusNode) {
-                      return TextField(
-                          enabled: _currentPosition != null,
-                          controller: controller,
-                          focusNode: focusNode,
-                          autofocus: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Enter address',
-                          ));
-                    },
-                    suggestionsCallback: (pattern) async {
-                      return await _fetchAddressSuggestionsFromPlacesApi(
-                          pattern);
-                    },
-                    itemBuilder: (context, suggestion) {
-                      return ListTile(
-                        title: Text(
-                            suggestion.formattedAddress ?? suggestion.name),
-                      );
-                    },
-                    onSelected: (suggestion) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text("Location Page"),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('LAT: ${_currentPosition?.latitude ?? ''}'),
+                Text('LNG: ${_currentPosition?.longitude ?? ''}'),
+                Text('ADDRESS: ${_currentAddress ?? ''}'),
+                const SizedBox(height: 16),
+                CupertinoButton.filled(
+                  onPressed: _getCurrentPosition,
+                  child: const Text("Get Current Location"),
+                ),
+                const SizedBox(height: 32),
+                CupertinoSearchTextField(
+                  controller: _addressController,
+                  placeholder: "Enter address",
+                  onSubmitted: (input) async {
+                    final suggestions =
+                        await _fetchAddressSuggestionsFromPlacesApi(input);
+                    if (suggestions.isNotEmpty) {
                       _addressController.text =
-                          suggestion.formattedAddress ?? suggestion.name;
-                      _getLatLngFromPlaceId(suggestion.placeId);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text('ADDR LAT: ${_addressLat ?? ''}'),
-                  Text('ADDR LNG: ${_addressLon ?? ''}'),
-                  Text(
-                    'Distance: ${_distance?.toStringAsFixed(2) ?? '?'} km',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  Text(
-                    'Distance: ${_distance?.toStringAsFixed(2) ?? '?'} km',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ],
-              ),
+                          suggestions.first.formattedAddress ??
+                              suggestions.first.name;
+                      _getLatLngFromPlaceId(suggestions.first.placeId);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text('ADDR LAT: ${_addressLat ?? ''}'),
+                Text('ADDR LNG: ${_addressLon ?? ''}'),
+                Text(
+                  'Distance: ${_distance?.toStringAsFixed(2) ?? '?'} km',
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Future<List<PlacesSearchResult>> _fetchAddressSuggestionsFromPlacesApi(
       String input) async {
     try {
-      return _addressesRepository.SearchAddress(input);
+      return _addressesRepository.searchAddress(input);
     } catch (e) {
       debugPrint('Failed to get address suggestions $e');
       return [];
     }
-  }
-
-  Future<bool> _handleLocationPermission() {
-    return _addressesRepository.handleLocationPermission();
   }
 
   Future<void> _getCurrentPosition() async {
@@ -154,8 +132,17 @@ class _LocationPageState extends State<LocationPage> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch location from address. $e')),
+      CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: Text('Failed to fetch location from address. $e'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       );
     }
   }

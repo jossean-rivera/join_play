@@ -1,27 +1,21 @@
-// for convert stream to listenable
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 
-import 'package:flutter/material.dart';
-
+/// Converts multiple streams into a `ChangeNotifier` that notifies listeners on stream events.
 class StreamToListenable extends ChangeNotifier {
   late final List<StreamSubscription> subscriptions;
 
   StreamToListenable(List<Stream> streams) {
-    subscriptions = [];
-    for (var e in streams) {
-      var s = e.asBroadcastStream().listen(_tt);
-      subscriptions.add(s);
-    }
-    notifyListeners();
+    subscriptions = streams.map((stream) {
+      return stream.asBroadcastStream().listen((event) => notifyListeners());
+    }).toList();
   }
 
   @override
   void dispose() {
-    for (var e in subscriptions) {
-      e.cancel();
+    for (var subscription in subscriptions) {
+      subscription.cancel();
     }
     super.dispose();
   }
-
-  void _tt(event) => notifyListeners();
 }

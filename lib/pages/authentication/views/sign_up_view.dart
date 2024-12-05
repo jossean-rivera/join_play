@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import 'package:flutter/cupertino.dart';
 import '../../../custom_theme_data.dart';
 
 class SignUpView extends StatefulWidget {
@@ -27,9 +26,8 @@ class _SignUpViewState extends State<SignUpView> {
   late TextEditingController emailController;
   late TextEditingController passwordController;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  String? errorMessage;
   bool isSubmitting = false;
-  CrossFadeState crossFadeState = CrossFadeState.showFirst;
+  bool isPasswordVisible = false;
 
   @override
   void initState() {
@@ -38,26 +36,12 @@ class _SignUpViewState extends State<SignUpView> {
     nameController = TextEditingController();
     emailController = TextEditingController(text: widget.initEmail);
     passwordController = TextEditingController(text: widget.initPassword);
-
-    emailController.addListener(_clearError);
-    passwordController.addListener(_clearError);
-  }
-
-  void _clearError() {
-    if (errorMessage != null) {
-      setState(() {
-        errorMessage = null;
-        crossFadeState = CrossFadeState.showFirst;
-      });
-    }
   }
 
   Future<void> _handleSignUp() async {
     if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;
-        errorMessage = null;
-        crossFadeState = CrossFadeState.showFirst;
       });
 
       final name = nameController.text.trim();
@@ -68,9 +52,9 @@ class _SignUpViewState extends State<SignUpView> {
         final error = await widget.emailSignUpCallback(name, email, password);
 
         if (error != null) {
+          // Show any additional error (if returned from the server)
           setState(() {
-            errorMessage = error;
-            crossFadeState = CrossFadeState.showSecond;
+            isSubmitting = false;
           });
         }
       } finally {
@@ -91,134 +75,202 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Form(
-          key: formKey,
+    return CupertinoPageScaffold(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Logo
-              Center(
-                child: Image.asset(
-                  'assets/images/logo-darker.png',
-                  height: 300,
-                ),
-              ),
-              Text('CREATE AN ACCOUNT',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 24), // Add some spacing below the logo
+              // Main content (form fields and button)
+              Expanded(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Name field with error message
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: CupertinoColors.systemGrey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: CupertinoTextFormFieldRow(
+                              controller: nameController,
+                              placeholder: "Name",
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your name";
+                                }
+                                return null;
+                              },
+                              style: const TextStyle(fontSize: 16),
+                              decoration: null, // Remove Cupertino default border
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formKey.currentState?.validate() == false
+                                ? "Please enter your name"
+                                : "",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: CupertinoColors.destructiveRed,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
-              // Error message
-              AnimatedCrossFade(
-                crossFadeState: crossFadeState,
-                duration: const Duration(milliseconds: 300),
-                firstChild: Container(),
-                secondChild: SizedBox(
-                  width: double.infinity,
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    margin: const EdgeInsets.only(bottom: 16.0),
-                    decoration: BoxDecoration(
-                      color: CustomColors.lightError,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      errorMessage ?? '',
-                      style: const TextStyle(color: CustomColors.darkerError),
-                      textAlign: TextAlign.center,
-                    ),
+                      // Email field with error message
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: CupertinoColors.systemGrey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: CupertinoTextFormFieldRow(
+                              controller: emailController,
+                              placeholder: "Email",
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your email";
+                                }
+                                final emailRegex =
+                                    RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                                if (!emailRegex.hasMatch(value)) {
+                                  return "Please enter a valid email address";
+                                }
+                                return null;
+                              },
+                              style: const TextStyle(fontSize: 16),
+                              decoration: null, // Remove Cupertino default border
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formKey.currentState?.validate() == false
+                                ? "Please enter your email"
+                                : "",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: CupertinoColors.destructiveRed,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Password field with toggle and error message
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: CupertinoColors.systemGrey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CupertinoTextFormFieldRow(
+                                    controller: passwordController,
+                                    placeholder: "Password",
+                                    obscureText: !isPasswordVisible,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Please enter your password";
+                                      }
+                                      if (value.length < 6) {
+                                        return "Password must be at least 6 characters";
+                                      }
+                                      return null;
+                                    },
+                                    style: const TextStyle(fontSize: 16),
+                                    decoration:
+                                        null, // Remove Cupertino default border
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isPasswordVisible = !isPasswordVisible;
+                                    });
+                                  },
+                                  child: Icon(
+                                    isPasswordVisible
+                                        ? CupertinoIcons.eye
+                                        : CupertinoIcons.eye_slash,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formKey.currentState?.validate() == false
+                                ? "Please enter your password"
+                                : "",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: CupertinoColors.destructiveRed,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Sign Up button
+                      CupertinoButton.filled(
+                        onPressed: isSubmitting ? null : _handleSignUp,
+                        borderRadius: BorderRadius.circular(8),
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: isSubmitting
+                            ? const CupertinoActivityIndicator()
+                            : const Text(
+                                "Sign Up",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              // Name text field
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.text,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your name";
-                  }
-                  final emailRegex = RegExp(r'\w+');
-                  if (!emailRegex.hasMatch(value)) {
-                    return "Please only use alphanumeric characters";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Email text field
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your email";
-                  }
-                  final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                  if (!emailRegex.hasMatch(value)) {
-                    return "Please enter a valid email address";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Password text field
-              TextFormField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your password";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Sign Up button
-              FilledButton(
-                onPressed: isSubmitting ? null : _handleSignUp,
-                child: isSubmitting
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.0,
-                      )
-                    : const Text("Sign Up"),
-              ),
-              const SizedBox(height: 16),
+              // Footer text at the bottom
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Already have an account?"),
-                  TextButton(
+                  const Text("Already have an account? "),
+                  CupertinoButton(
                     onPressed: () {
                       String? email = emailController.text.trim();
                       String? password = passwordController.text.trim();
                       widget.signInRequestCallback(email, password);
                     },
-                    child: const Text("Sign In"),
-                  )
+                    padding: EdgeInsets.zero,
+                    child: Text(
+                      "Sign In",
+                      style: TextStyle(
+                        color: CupertinoColors.activeBlue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],

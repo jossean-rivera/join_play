@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:join_play/pages/authentication/views/forgot_password_view.dart';
 import 'package:join_play/pages/authentication/views/initial_loading_view.dart';
@@ -14,48 +14,83 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     AuthenticationBloc bloc = BlocProvider.of<AuthenticationBloc>(context);
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        bloc: bloc,
-        builder: (BuildContext context, AuthenticationState state) {
-          switch (state) {
-            case AuthenticationInitial _:
-              return const InitalLoadingView();
-            case AuthenticationSignUpState signUpState:
-              return SignUpView(
-                  initEmail: signUpState.email,
-                  initPassword: signUpState.password,
-                  emailSignUpCallback: bloc.emailSignUp,
-                  signInRequestCallback: (email, password) => bloc.add(
-                        AuthenticationSignInRequestEvent(
-                            email: email, password: password),
-                      ));
-            case AuthenticationForgotPasswordState forgotPasswordState:
-              return ForgotPasswordView(
+      bloc: bloc,
+      builder: (BuildContext context, AuthenticationState state) {
+        switch (state) {
+          case AuthenticationInitial _:
+            return const CupertinoPageScaffold(
+              child: InitalLoadingView(),
+            );
+          case AuthenticationSignUpState signUpState:
+            return CupertinoPageScaffold(
+              navigationBar: const CupertinoNavigationBar(
+                middle: Text('Sign Up'),
+              ),
+              child: SignUpView(
+                initEmail: signUpState.email,
+                initPassword: signUpState.password,
+                emailSignUpCallback: bloc.emailSignUp,
+                signInRequestCallback: (email, password) => bloc.add(
+                  AuthenticationSignInRequestEvent(
+                    email: email,
+                    password: password,
+                  ),
+                ),
+              ),
+            );
+          case AuthenticationForgotPasswordState forgotPasswordState:
+            return CupertinoPageScaffold(
+              navigationBar: const CupertinoNavigationBar(
+                middle: Text('Forgot Password'),
+              ),
+              child: ForgotPasswordView(
                 initEmail: forgotPasswordState.email,
                 emailForgotPasswordCallback: bloc.emailForgotPassword,
-                signInRequestCallback: (initEmail) => bloc
-                    .add(AuthenticationSignInRequestEvent(email: initEmail)),
-              );
-            case AuthenticationSignInState signInState:
-              return SignInView(
+                signInRequestCallback: (initEmail) => bloc.add(
+                  AuthenticationSignInRequestEvent(email: initEmail),
+                ),
+              ),
+            );
+          case AuthenticationSignInState signInState:
+            return CupertinoPageScaffold(
+              navigationBar: const CupertinoNavigationBar(
+                middle: Text('Sign In'),
+              ),
+              child: SignInView(
                 initEmail: signInState.email,
                 initPassword: signInState.password,
                 loginSubmitCallback: bloc.loginSubmit,
                 signUpRequestCallback: (initEmail, initPassword) => bloc.add(
-                    AuthenticationSignUpRequestEvent(
-                        email: initEmail, password: initPassword)),
-                forgotPasswordRequestCallback: (email) =>
-                    bloc.add(AuthenticationForgotPasswordRequestEvent(email)),
-              );
-            default:
-              return SignInView(
+                  AuthenticationSignUpRequestEvent(
+                    email: initEmail,
+                    password: initPassword,
+                  ),
+                ),
+                forgotPasswordRequestCallback: (email) => bloc.add(
+                  AuthenticationForgotPasswordRequestEvent(email),
+                ),
+              ),
+            );
+          default:
+            return CupertinoPageScaffold(
+              navigationBar: const CupertinoNavigationBar(
+                middle: Text('Sign In'),
+              ),
+              child: SignInView(
                 loginSubmitCallback: bloc.loginSubmit,
                 signUpRequestCallback: (initEmail, initPassword) => bloc.add(
-                    AuthenticationSignUpRequestEvent(
-                        email: initEmail, password: initPassword)),
-                forgotPasswordRequestCallback: (email) =>
-                    bloc.add(AuthenticationForgotPasswordRequestEvent(email)),
-              );
-          }
-        });
+                  AuthenticationSignUpRequestEvent(
+                    email: initEmail,
+                    password: initPassword,
+                  ),
+                ),
+                forgotPasswordRequestCallback: (email) => bloc.add(
+                  AuthenticationForgotPasswordRequestEvent(email),
+                ),
+              ),
+            );
+        }
+      },
+    );
   }
 }

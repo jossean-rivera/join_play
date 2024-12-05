@@ -1,15 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_webservice/places.dart';
-import 'package:join_play/custom_theme_data.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/repositories/addresses_repository.dart';
 import 'package:join_play/widgets/address_picker.dart';
 import '../utilities/firebase_service.dart';
 import 'package:join_play/navigation/route_names.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class GameFormPage extends StatefulWidget {
   final String sportId;
@@ -17,13 +14,13 @@ class GameFormPage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
   final AddressesRepository addressesRepository;
 
-  const GameFormPage(
-      {Key? key,
-      required this.sportId,
-      required this.firebaseService,
-      required this.authenticationBloc,
-      required this.addressesRepository})
-      : super(key: key);
+  const GameFormPage({
+    Key? key,
+    required this.sportId,
+    required this.firebaseService,
+    required this.authenticationBloc,
+    required this.addressesRepository,
+  }) : super(key: key);
 
   @override
   _GameFormPageState createState() => _GameFormPageState();
@@ -41,7 +38,6 @@ class _GameFormPageState extends State<GameFormPage> {
   final _dateTimeController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  // Coordinates of the game address
   double? _addressLat;
   double? _addressLon;
 
@@ -51,60 +47,45 @@ class _GameFormPageState extends State<GameFormPage> {
     super.dispose();
   }
 
-  String _twoDigits(int n) {
-    return n.toString().padLeft(2, '0');
-  }
+  String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
   Future<void> _pickDateTime(BuildContext context) async {
-    DateTime? datePicked = await showDatePicker(
+    await showCupertinoModalPopup(
       context: context,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
+      builder: (context) {
+        return SizedBox(
+          height: 300,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.dateAndTime,
+            initialDateTime: DateTime.now(),
+            onDateTimeChanged: (DateTime value) {
+              setState(() {
+                _dateTime = Timestamp.fromDate(value);
+                _dateTimeController.text =
+                    '${value.year}-${_twoDigits(value.month)}-${_twoDigits(value.day)} '
+                    '${_twoDigits(value.hour)}:${_twoDigits(value.minute)}';
+              });
+            },
+          ),
+        );
+      },
     );
-
-    if (datePicked == null) return;
-
-    // Pick the time
-    TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime == null) return; // User canceled the picker
-
-    // Combine date and time into a DateTime object
-    final pickedDateTime = DateTime(
-      datePicked.year,
-      datePicked.month,
-      datePicked.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-
-    setState(() {
-      _dateTime = Timestamp.fromDate(pickedDateTime); // Convert to Timestamp
-      _dateTimeController.text =
-          '${pickedDateTime.year}-${_twoDigits(pickedDateTime.month)}-${_twoDigits(pickedDateTime.day)} '
-          '${_twoDigits(pickedDateTime.hour)}:${_twoDigits(pickedDateTime.minute)}';
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(
-        'New Game',
-        style: Theme.of(context).textTheme.headlineMedium,
-      )),
-      body: Padding(
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('New Game'),
+      ),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Game Name'),
+              CupertinoTextFormFieldRow(
+                placeholder: 'Game Name',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a game name';
@@ -117,100 +98,79 @@ class _GameFormPageState extends State<GameFormPage> {
               ),
               const SizedBox(height: 16.0),
               AddressPicker(
-                  addressController: _addressController,
-                  addressesRepository: widget.addressesRepository,
-                  onSuccess: (String locationTitle, String location,
-                      double latitude, double longitude) {
-                    setState(() {
-                      _location = location;
-                      _locationTitle = locationTitle;
-                      _addressLat = latitude;
-                      _addressLon = longitude;
-                    });
-                  }),
-
+                addressController: _addressController,
+                addressesRepository: widget.addressesRepository,
+                onSuccess: (String locationTitle, String location,
+                    double latitude, double longitude) {
+                  setState(() {
+                    _location = location;
+                    _locationTitle = locationTitle;
+                    _addressLat = latitude;
+                    _addressLon = longitude;
+                  });
+                },
+              ),
               const SizedBox(height: 16.0),
-
-              // Row for side-by-side dropdowns
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<int>(
-                      decoration:
-                          const InputDecoration(labelText: 'No. of Players'),
-                      items: List.generate(20, (index) => index + 1)
-                          .map((value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(value.toString()),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
+                    child: CupertinoPicker(
+                      itemExtent: 32.0,
+                      onSelectedItemChanged: (index) {
                         setState(() {
-                          _numPlayers = value;
+                          _numPlayers = index + 1;
                         });
                       },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Select players';
-                        }
-                        return null;
-                      },
+                      children: List<Widget>.generate(
+                        20,
+                        (index) => Text('${index + 1}'),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16.0), // Spacing between dropdowns
+                  const SizedBox(width: 16.0),
                   Expanded(
-                    child: DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                          labelText: 'Player Slots Available'),
-                      items: List.generate(20, (index) => index + 1)
-                          .map((value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(value.toString()),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
+                    child: CupertinoPicker(
+                      itemExtent: 32.0,
+                      onSelectedItemChanged: (index) {
                         setState(() {
-                          _slotsAvailable = value;
+                          _slotsAvailable = index + 1;
                         });
                       },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Select slots';
-                        }
-                        return null;
-                      },
+                      children: List<Widget>.generate(
+                        20,
+                        (index) => Text('${index + 1}'),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _dateTimeController,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: 'Game Date & Time',
-                  hintText: 'Select Date and Time',
-                ),
+              GestureDetector(
                 onTap: () => _pickDateTime(context),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a date and time';
-                  }
-                  return null;
-                },
+                child: AbsorbPointer(
+                  child: CupertinoTextFormFieldRow(
+                    controller: _dateTimeController,
+                    placeholder: 'Game Date & Time',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a date and time';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 32.0),
               Center(
-                child: FilledButton(
+                child: CupertinoButton.filled(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
 
-                      // Get user reference in database for the current logged in user
                       final userRef = widget.firebaseService
                           .getUserDocumentReference(
                               widget.authenticationBloc.sportUser!.uuid);
-                      // Create event in database
+
                       await widget.firebaseService.createEvent(SportEvent(
                         sportId: widget.sportId,
                         dateTime: _dateTime,
@@ -226,11 +186,7 @@ class _GameFormPageState extends State<GameFormPage> {
                         registeredUsers: [],
                       ));
 
-                      // Process the form data here (e.g., save it to Firebase)
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Game added successfully!')),
-                      );
+                      // Use GoRouter to navigate back to My Games page
                       context.goNamed(RouteNames.myGames);
                     }
                   },

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,12 +18,13 @@ class SportDetailsPage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
   final AddressesRepository addressesRepository;
 
-  const SportDetailsPage(
-      {super.key,
-      required this.sportId,
-      required this.firebaseService,
-      required this.authenticationBloc,
-      required this.addressesRepository});
+  const SportDetailsPage({
+    super.key,
+    required this.sportId,
+    required this.firebaseService,
+    required this.authenticationBloc,
+    required this.addressesRepository,
+  });
 
   @override
   State<SportDetailsPage> createState() => _SportDetailsPageState();
@@ -34,7 +35,6 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
 
   late LocationBloc _locationBloc;
 
-  // Radius for the events to display
   static const double _radiusInKM = 100;
 
   void _navigateToForm(BuildContext context, String sportId) {
@@ -52,182 +52,163 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.sportId,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        actions: [
-          Switch(
-            value: showUnavailable,
-            onChanged: (value) {
-              setState(() {
-                showUnavailable = value;
-              });
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Center(
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(widget.sportId),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoSwitch(
+              value: showUnavailable,
+              onChanged: (value) {
+                setState(() {
+                  showUnavailable = value;
+                });
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 showUnavailable ? "Unavailable" : "Available",
                 style: const TextStyle(fontSize: 14),
               ),
             ),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          FutureBuilder<List<SportEvent>>(
+            future: _loadAllData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CupertinoActivityIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                if (_locationBloc.locationAquired &&
+                    _locationBloc.currLocationName.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("No events close to ${_locationBloc.currLocationName}"),
+                        const SizedBox(height: 8),
+                        CupertinoButton(
+                          onPressed: () async {
+                            await _locationBloc.showChangeLocationDialog(
+                                context: context);
+                            setState(() {});
+                          },
+                          child: const Text('Change location'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const Center(child: Text("No events available for this sport."));
+              } else {
+                final events = snapshot.data!;
+
+                return CupertinoScrollbar(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            final event = events[index];
+                            return Container(
+                              margin: const EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemBackground,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: CupertinoColors.systemGrey.withOpacity(0.5),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  )
+                                ],
+                              ),
+                              child: CupertinoListTile(
+                                title: Text(event.name ?? ''),
+                                subtitle: Text(
+                                  "Location: ${event.location}\n"
+                                  "Time: ${event.dateTime?.toDate()}\n"
+                                  "Slots Available: ${event.slotsAvailable}\n"
+                                  "Host: ${event.hostName}",
+                                ),
+                                trailing: (event.slotsAvailable ?? 0) > 0
+                                    ? CupertinoButton.filled(
+                                        onPressed: () async {
+                                          await widget.firebaseService
+                                              .registerForEvent(
+                                            event.id!,
+                                            widget.authenticationBloc.sportUser!
+                                                .uuid,
+                                          );
+                                          context.goNamed(
+                                            RouteNames.registrationConfirmation,
+                                            pathParameters: {'sportId': event.sportId!},
+                                          );
+                                        },
+                                        child: const Text("Register"),
+                                      )
+                                    : const Text(
+                                        "Full",
+                                        style: TextStyle(color: CupertinoColors.destructiveRed),
+                                      ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Text("Want to search for events in another location?"),
+                        CupertinoButton(
+                          onPressed: () async {
+                            await _locationBloc.showChangeLocationDialog(
+                                context: context);
+                            setState(() {});
+                          },
+                          child: const Text('Change location'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+          // Floating action button workaround for CupertinoPageScaffold
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: CupertinoButton.filled(
+              onPressed: () {
+                _navigateToForm(context, widget.sportId);
+              },
+              child: const Text('Add'),
+            ),
           ),
         ],
       ),
-      body: FutureBuilder<List<SportEvent>>(
-        future: _loadAllData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Display loading icon
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            // Display error
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            // Display label that says there are no nearby events
-            // Give the option to change the location.
-            if (_locationBloc.locationAquired != null &&
-                _locationBloc.currLocationName.isNotEmpty) {
-              return Center(
-                  child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("No events close to ${_locationBloc.currLocationName}"),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  TextButton(
-                      onPressed: () async {
-                        // Show dialog to change address
-                        await _locationBloc.showChangeLocationDialog(
-                            context: context);
-
-                        // Refresh UI
-                        setState(() {});
-                      },
-                      child: const Text('Change location'))
-                ],
-              ));
-            }
-            return const Center(
-                child: Text("No events available for this sport."));
-          } else {
-            final events = snapshot.data!;
-
-            if (events.isEmpty) {
-              return const Center(child: Text("No matching events found."));
-            }
-
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  ListView.builder(
-                    // Set options to avoid conflicting scroll with single child scroll view
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: events.length,
-                    itemBuilder: (context, index) {
-                      final event = events[index];
-                      return Card(
-                        margin: const EdgeInsets.all(8.0),
-                        child: ListTile(
-                          title: Text(event.name ?? ''),
-                          subtitle: Text(
-                            "Location: ${event.location}\n"
-                            "Time: ${event.dateTime?.toDate()}\n"
-                            "Slots Available: ${event.slotsAvailable}\n"
-                            "Host: ${event.hostName}",
-                          ),
-                          isThreeLine: true,
-                          trailing: (event.slotsAvailable ?? 0) > 0
-                              ? FilledButton(
-                                  onPressed: () async {
-                                    await widget.firebaseService
-                                        .registerForEvent(
-                                      event.id!, // Event ID
-                                      widget.authenticationBloc.sportUser!
-                                          .uuid, // Logged-in user ID
-                                    );
-
-                                    // Go to the confirmation page with animation
-                                    GoRouter.of(context).goNamed(
-                                      RouteNames.registrationConfirmation,
-                                      pathParameters: {
-                                        'sportId': event.sportId!
-                                      },
-                                    );
-                                  },
-                                  child: Text(
-                                    "Register",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary),
-                                  ),
-                                )
-                              : Text(
-                                  "Full",
-                                  style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.error),
-                                ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Change location button section
-                  const SizedBox(height: 16),
-                  const Text("Want to search for events in another location?"),
-                  TextButton(
-                    onPressed: () async {
-                      // Show dialog to change address
-                      await _locationBloc.showChangeLocationDialog(
-                          context: context);
-
-                      // Refresh UI
-                      setState(() {});
-                    },
-                    child: const Text('Change location'),
-                  ),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _navigateToForm(context, widget.sportId);
-        },
-        child: const Text('Add'),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  /// Combines all async process for loading data into one future
   Future<List<SportEvent>> _loadAllData() async {
-    // Handle location access first.
     bool success = await _handleLocationAccess();
 
     if (!success) {
       return [];
     }
 
-    // Get all sports events
     List<SportEvent> events =
         await widget.firebaseService.getEventsForSport(widget.sportId);
 
-    // Get only the events that are open
     Iterable<SportEvent> filteredEvents = events.where((e) {
-      // Filter based on the slots available
       final hasSlots = (e.slotsAvailable ?? 0) > 0;
       bool slotsFilter = showUnavailable ? !hasSlots : hasSlots;
 
@@ -235,22 +216,20 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
         return false;
       }
 
-      // We need coordinates to calculate the distance
       if (e.locationLatitude == null || e.locationLongitude == null) {
         return false;
       }
 
-      // Filter events that are close
       double distance = widget.addressesRepository.calculateDistance(
-          _locationBloc.currLocationLatitude!,
-          _locationBloc.currLocationLongitude!,
-          e.locationLatitude!,
-          e.locationLongitude!);
+        _locationBloc.currLocationLatitude!,
+        _locationBloc.currLocationLongitude!,
+        e.locationLatitude!,
+        e.locationLongitude!,
+      );
       return distance <= _radiusInKM;
     });
 
     for (SportEvent event in filteredEvents) {
-      // Set host name
       event.hostName = await widget.firebaseService
           .getHostName(event.hostUserId as DocumentReference);
     }
@@ -258,26 +237,21 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
     return filteredEvents.toList();
   }
 
-  /// Checks if the user has granted access and ask
-  /// for permission if not then ask for the address they want to use.
   Future<bool> _handleLocationAccess() async {
     if (_locationBloc.locationAquired) {
-      // We have already saved the location to search for events.
       return true;
     }
 
     bool access = await widget.addressesRepository.handleLocationPermission();
     if (!access) {
-      // Ask user to select the location then.
       await _locationBloc.showLocationUnavailableDialog(
-          context: context,
-          onCancel: () {
-            // Go back
-            context.goNamed(RouteNames.sports);
-          });
+        context: context,
+        onCancel: () {
+          context.goNamed(RouteNames.sports);
+        },
+      );
       return true;
     } else {
-      // Get the location of the device
       Position? currPosition =
           await widget.addressesRepository.getCurrentPosition();
 
@@ -286,9 +260,10 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
             .getAddressFromPosition(currPosition);
 
         _locationBloc.add(SaveLocationEvent(
-            latitude: currPosition.latitude,
-            longitude: currPosition.longitude,
-            placemark: place));
+          latitude: currPosition.latitude,
+          longitude: currPosition.longitude,
+          placemark: place,
+        ));
 
         setState(() {});
         return true;

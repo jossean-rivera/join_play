@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomColors {
@@ -12,96 +12,112 @@ class CustomColors {
   static const Color lightGrey = Color.fromARGB(255, 212, 236, 239);
 }
 
-ThemeData customThemeData = ThemeData(
-    useMaterial3: true,
-
-    // Set color pallete
-    colorScheme: const ColorScheme(
-      brightness: Brightness.dark,
-      primary: CustomColors.babyBlue,
-      onPrimary: CustomColors.navyBlue,
-      secondary: CustomColors.lightGrey,
-      onSecondary: CustomColors.navyBlue,
-      error: CustomColors.darkError,
-      onError: Colors.white,
-      surface: CustomColors.navyBlue,
-      onSurface: Colors.white,
+CupertinoThemeData customCupertinoThemeData = CupertinoThemeData(
+  primaryColor: CustomColors.blueGrotto,
+  barBackgroundColor: CustomColors.navyBlue,
+  scaffoldBackgroundColor: CustomColors.navyBlue,
+  textTheme: CupertinoTextThemeData(
+    textStyle: GoogleFonts.raleway(
+      color: CupertinoColors.white,
+      fontSize: 16,
     ),
-
-    // Set background of scafolds
-    scaffoldBackgroundColor: CustomColors.navyBlue,
-    // Define the default `TextTheme`. Use this to specify the default
-    // text styling for headlines, titles, bodies of text, and more.
-    textTheme: TextTheme(
-      displayLarge: const TextStyle(
-        fontSize: 72,
-        fontWeight: FontWeight.bold,
-      ),
-      // ···
-      titleLarge: GoogleFonts.oswald(
-        fontSize: 42,
-        fontStyle: FontStyle.italic,
-      ),
-      titleMedium: GoogleFonts.oswald(fontStyle: FontStyle.italic),
-      titleSmall: GoogleFonts.oswald(),
-      headlineLarge: GoogleFonts.oswald(fontStyle: FontStyle.italic),
-      headlineMedium: GoogleFonts.oswald(fontStyle: FontStyle.italic),
-      headlineSmall: GoogleFonts.oswald(),
-      bodyMedium: GoogleFonts.raleway(),
-      displaySmall: GoogleFonts.raleway(fontStyle: FontStyle.italic),
+    actionTextStyle: GoogleFonts.oswald(
+      color: CustomColors.babyBlue,
+      fontSize: 18,
     ),
-    // Set global style for TextButton
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: const Color(0xFF75E6DA), // Link color globally
-        textStyle: GoogleFonts.merriweather(), // Optional: Custom font
-      ),
+    tabLabelTextStyle: GoogleFonts.oswald(
+      color: CustomColors.babyBlue,
+      fontSize: 14,
     ),
-
-    // Global InputDecorationTheme for TextFormField and others
-    inputDecorationTheme: InputDecorationTheme(
-      labelStyle: WidgetStateTextStyle.resolveWith((state) {
-        if (state.contains(WidgetState.error)) {
-          return const TextStyle(color: CustomColors.lightError);
-        }
-
-        return const TextStyle(color: Colors.white);
-      }), // Label text color
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: CustomColors.babyBlue, // Focused border color
-          width: 2.0,
-        ),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: Colors.white, // Enabled (unfocused) border color
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: CustomColors.lightError, // Error border color
-          width: 2.0,
-        ),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: CustomColors.lightError, // Focused error border color
-          width: 2.0,
-        ),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      floatingLabelStyle: const TextStyle(color: Colors.white),
-      errorStyle: const TextStyle(color: CustomColors.lightError),
-      hintStyle: const TextStyle(color: Colors.white), // Hint text color
+    navLargeTitleTextStyle: GoogleFonts.oswald(
+      fontSize: 42,
+      color: CustomColors.babyBlue,
+      fontWeight: FontWeight.bold,
     ),
-    filledButtonTheme: FilledButtonThemeData(
-        style: ButtonStyle(
-            textStyle: WidgetStatePropertyAll(GoogleFonts.oswald(
-                fontSize: 20,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.normal)))));
+    navTitleTextStyle: GoogleFonts.oswald(
+      fontSize: 20,
+      color: CustomColors.babyBlue,
+    ),
+  ),
+);
+
+class CustomTheme {
+  // Function to generate a 3D Text Widget
+  static Widget threeDText({
+    required String text,
+    required double fontSize,
+    required Color textColor,
+    required Color shadowColor,
+    double shadowOffsetX = 3,
+    double shadowOffsetY = 3,
+    double blurRadius = 4,
+  }) {
+    return Stack(
+      children: [
+        // Shadow Layer
+        Positioned(
+          left: shadowOffsetX,
+          top: shadowOffsetY,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontFamily: '.SF UI Text',
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: shadowColor, // Shadow color
+            ),
+          ),
+        ),
+        // Main Text Layer
+        Text(
+          text,
+          style: TextStyle(
+            fontFamily: '.SF UI T',
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: textColor, // Main text color
+            shadows: [
+              Shadow(
+                offset: Offset(shadowOffsetX, shadowOffsetY),
+                blurRadius: blurRadius,
+                color: shadowColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Custom Cupertino Input Decoration
+  static BoxDecoration cupertinoInputDecoration() {
+    return BoxDecoration(
+      color: CustomColors.navyBlue,
+      border: Border.all(
+        color: CustomColors.babyBlue,
+        width: 2.0,
+      ),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+  }
+
+  // Custom Cupertino Button Style
+  static Widget cupertinoButton({
+    required VoidCallback onPressed,
+    required String text,
+    Color backgroundColor = CustomColors.blueGreen,
+    Color textColor = CupertinoColors.white,
+  }) {
+    return CupertinoButton(
+      color: backgroundColor,
+      onPressed: onPressed,
+      child: Text(
+        text,
+        style: GoogleFonts.oswald(
+          fontSize: 16,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:join_play/models/sport_user.dart';
 import 'package:join_play/repositories/user_repository.dart';
 import 'package:meta/meta.dart';
@@ -21,7 +21,6 @@ class AuthenticationBloc
 
     // Handle the successful login event
     on<AuthenticationLoggedInEvent>((event, emit) {
-      // Save a reference of the user data in the bloc
       sportUser = event.loggedInUser;
       emit(AuthenticationLoggedIn(event.loggedInUser));
     });
@@ -29,21 +28,21 @@ class AuthenticationBloc
     // Handle the logout event
     on<AuthenticationLogoutEvent>((event, emit) async {
       try {
-        await FirebaseAuth.instance.signOut();
-      } catch (e) {
-        // Ignore exception
+        await _firebaseAuth.signOut();
+      } catch (_) {
+        // Ignore exceptions
       }
       sportUser = null;
       emit(AuthenticationLoggedOut());
     });
 
-    // Handle event to show sign up view
+    // Handle event to show sign-up view
     on<AuthenticationSignUpRequestEvent>((event, emit) {
       emit(AuthenticationSignUpState(
           email: event.email, password: event.password));
     });
 
-    // Handle event to show sign in view
+    // Handle event to show sign-in view
     on<AuthenticationSignInRequestEvent>((event, emit) {
       emit(AuthenticationSignInState(
           email: event.email, password: event.password));
@@ -57,7 +56,6 @@ class AuthenticationBloc
     // Handle authentication changes
     on<AuthenticationUserChangedEvent>((event, emit) async {
       if (event.user?.uid != null) {
-        // User is signed in
         SportUser? sportLoggedInUser =
             await _userRepository.getUser(event.user?.uid ?? '');
 
@@ -67,42 +65,36 @@ class AuthenticationBloc
         }
       }
 
-      // The user is not valid or signed in
       emit(AuthenticationLoggedOut());
     });
 
-    // Emit our own auth state when the firebase auth state changes
+    // Emit authentication state changes based on Firebase
     _firebaseAuth.authStateChanges().listen((User? user) {
       add(AuthenticationUserChangedEvent(user));
     });
   }
 
-  /// Method to loging the user with email/password authentication on Firebase.
+  /// Log in the user with email/password using Firebase authentication
   Future<String?> loginSubmit(String email, String password) async {
     try {
-      // Send loging request to firebase email auth
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (credential.user?.uid != null) {
-        // Get the user data from firestore
         SportUser? user =
             await _userRepository.getUser(credential.user?.uid ?? '');
         if (user != null) {
-          // Login was successful
           add(AuthenticationLoggedInEvent(user));
           return null;
         } else {
-          // We have no user data associated with this user
-          _firebaseAuth.currentUser?.delete();
+          await _firebaseAuth.currentUser?.delete();
           return 'No user data found for this email. Please register again.';
         }
       }
 
-      // Something else is wrong
-      return 'There was an internal error while trying to login, try again later.';
+      return 'An internal error occurred during login. Please try again later.';
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         return 'No user found for this email.';
@@ -111,14 +103,13 @@ class AuthenticationBloc
       } else {
         return e.message ?? e.code;
       }
-    } catch (e) {
-      return 'There was an internal error while trying to login, try again later.';
+    } catch (_) {
+      return 'An internal error occurred during login. Please try again later.';
     }
   }
 
-  /// Method used to register a new user on firebase for email authentication
-  Future<String?> emailSignUp(
-      String name, String email, String password) async {
+  /// Register a new user in Firebase for email authentication
+  Future<String?> emailSignUp(String name, String email, String password) async {
     try {
       UserCredential credential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -130,32 +121,32 @@ class AuthenticationBloc
         add(AuthenticationLoggedInEvent(user));
       } else {
         await _firebaseAuth.currentUser?.delete();
-        return 'There was an internal error while trying to login, try again later.';
+        return 'An internal error occurred during registration. Please try again later.';
       }
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         return 'The password provided is too weak.';
       } else if (e.code == 'email-already-in-use') {
-        return 'The account already exists for that email.';
+        return 'An account already exists for this email.';
       } else {
         return e.message ?? e.code;
       }
-    } catch (e) {
-      return 'There was an internal error while trying to login, try again later.';
+    } catch (_) {
+      return 'An internal error occurred during registration. Please try again later.';
     }
   }
 
-  /// Calls forgot password flow in firebase auth
+  /// Initiates a password reset flow in Firebase
   Future<String?> emailForgotPassword(String email) async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
       emit(AuthenticationSignInState(email: email));
       return null;
     } on FirebaseAuthException catch (e) {
       return e.code;
-    } catch (e) {
-      return e.toString();
+    } catch (_) {
+      return 'An error occurred while resetting the password.';
     }
   }
 }

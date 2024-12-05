@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,8 +62,13 @@ class MyApp extends StatelessWidget {
         ],
         child: Builder(
           builder: (context) {
-            return MaterialApp.router(
-              theme: customThemeData,
+            final Brightness systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+
+            return CupertinoApp.router(
+              theme: CupertinoThemeData(
+                brightness: systemBrightness,
+                primaryColor: CupertinoColors.systemBlue,
+              ),
               title: 'Join Play',
               routerConfig: createRouter(context.read<AuthenticationBloc>()),
             );

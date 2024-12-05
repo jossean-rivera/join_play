@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/pages/sport_details_page.dart';
@@ -26,24 +26,19 @@ final GlobalKey<NavigatorState> shellNavigatorKey =
 
 GoRouter createRouter(AuthenticationBloc authenticationBloc) {
   return GoRouter(
-    initialLocation: RoutePaths.splashScreen, // Set the login page as the stating page
+    initialLocation: RoutePaths.splashScreen,
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
-      if (state.uri.path == '/splashScreen'){
-          return null;
-        }
-      //  Check if the current bloc state is for logging out
-      if (authenticationBloc.state is AuthenticationLoggedOut && state.fullPath?.startsWith(RoutePaths.login) != true) {
-        //  If the user is not on the login page, then redirect the user to /login
-        if (state.fullPath?.startsWith(RoutePaths.login) != true) {
-          return RoutePaths.login;
-        }
-      } else if (authenticationBloc.state is AuthenticationLoggedIn && state.fullPath?.startsWith(RoutePaths.login) == true) {
-        //  If the event for logging in raise, and the user is in the login page,
-        //  then redirect to the home page
-        if (state.fullPath?.startsWith(RoutePaths.login) == true) {
-          return RoutePaths.sports;
-        }
+      if (state.uri.path == '/splashScreen') {
+        return null;
+      }
+
+      if (authenticationBloc.state is AuthenticationLoggedOut &&
+          state.fullPath?.startsWith(RoutePaths.login) != true) {
+        return RoutePaths.login;
+      } else if (authenticationBloc.state is AuthenticationLoggedIn &&
+          state.fullPath?.startsWith(RoutePaths.login) == true) {
+        return RoutePaths.sports;
       }
 
       return null;
@@ -53,7 +48,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
       GoRoute(
         path: RoutePaths.splashScreen,
         name: RouteNames.splashScreen,
-        builder: (context, state) => SplashScreen(), 
+        builder: (context, state) => SplashScreen(),
       ),
       GoRoute(
         path: RoutePaths.login,
@@ -63,7 +58,7 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) =>
-            ScaffoldWithNavBar(title: RoutePaths.getTitleFromRoute(state), child: child),
+            CupertinoScaffoldWithNavBar(title: RoutePaths.getTitleFromRoute(state), child: child),
         routes: [
           GoRoute(
             path: RoutePaths.sports,
@@ -72,57 +67,62 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                 SportsPage(firebaseService: context.read<FirebaseService>()),
             routes: [
               GoRoute(
-                  path: ':sportId',
-                  name: RouteNames.sportDetails,
-                  builder: (context, state) {
-                    final sportId = state.pathParameters['sportId']!;
-                    return SportDetailsPage(
-                      sportId: sportId,
-                      firebaseService: context.read<FirebaseService>(),
-                      authenticationBloc:
-                          BlocProvider.of<AuthenticationBloc>(context),
-                      addressesRepository: context.read<AddressesRepository>(),
-                    );
-                  },
-                  routes: [
-                    GoRoute(
-                      path: RoutePaths.registrationConfirmation,
-                      name: RouteNames.registrationConfirmation,
-                      builder: (context, state) {
-                        return const RegistrationConfirmationPage();
-                      },
-                    ),
-                    GoRoute(
-                      path: RoutePaths.gameForm,
-                      name: RouteNames.gameForm,
-                      builder: (context, state) {
-                        final sportId = state.pathParameters['sportId']!;
-                        return GameFormPage(
-                          sportId: sportId,
-                          firebaseService: context.read<FirebaseService>(),
-                          authenticationBloc:
-                              BlocProvider.of<AuthenticationBloc>(context),
-                          addressesRepository: context.read<AddressesRepository>(),
-                        );
-                      },
-                    ),
-                  ]),
+                path: ':sportId',
+                name: RouteNames.sportDetails,
+                builder: (context, state) {
+                  final sportId = state.pathParameters['sportId']!;
+                  return SportDetailsPage(
+                    sportId: sportId,
+                    firebaseService: context.read<FirebaseService>(),
+                    authenticationBloc:
+                        BlocProvider.of<AuthenticationBloc>(context),
+                    addressesRepository: context.read<AddressesRepository>(),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: RoutePaths.registrationConfirmation,
+                    name: RouteNames.registrationConfirmation,
+                    builder: (context, state) {
+                      return const RegistrationConfirmationPage();
+                    },
+                  ),
+                  GoRoute(
+                    path: RoutePaths.gameForm,
+                    name: RouteNames.gameForm,
+                    builder: (context, state) {
+                      final sportId = state.pathParameters['sportId']!;
+                      return GameFormPage(
+                        sportId: sportId,
+                        firebaseService: context.read<FirebaseService>(),
+                        authenticationBloc:
+                            BlocProvider.of<AuthenticationBloc>(context),
+                        addressesRepository:
+                            context.read<AddressesRepository>(),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
           GoRoute(
             path: RoutePaths.myGames,
             name: RouteNames.myGames,
-            builder: (context, state) => const MyGamesPage(),
+            builder: (context, state) =>  const MyGamesPage(
+
+            ),
           ),
           GoRoute(
             path: RoutePaths.history,
             name: RouteNames.history,
-            builder: (context, state) => const HistoryPage(),
+            builder: (context, state) =>  const HistoryPage(
+            ),
           ),
           GoRoute(
             path: RoutePaths.profile,
             name: RouteNames.profile,
-            builder: (context, state) => const ProfilePage(),
+            builder: (context, state) =>  const ProfilePage(),
           ),
         ],
       ),
