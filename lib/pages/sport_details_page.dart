@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
 import 'package:join_play/blocs/authentication/location/location_bloc.dart';
+import 'package:join_play/custom_theme_data.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/navigation/route_names.dart';
 import 'package:join_play/repositories/addresses_repository.dart';
@@ -34,6 +36,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
 
   late LocationBloc _locationBloc;
   late AuthenticationBloc _authenticationBloc;
+  final DateFormat dateFormat = DateFormat('MM/dd/yyyy HH:mm');
 
   // Radius for the events to display
   static const double _radiusInKM = 100;
@@ -137,33 +140,41 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                       return Card(
                         margin: const EdgeInsets.all(8.0),
                         child: ListTile(
-                          title: Text(event.name ?? ''),
-                          subtitle: Text(
-                            "Location: ${event.location}\n"
-                            "Time: ${event.dateTime?.toDate()}\n"
-                            "Slots Available: ${event.slotsAvailable}\n"
-                            "Host: ${event.hostName}",
-                          ),
-                          isThreeLine: true,
-                          trailing: getListViewActionButton(event)
-                        ),
+                            title: Text(event.name ?? ''),
+                            subtitle: Text(
+                              "Location: ${event.location}\n"
+                              "Time: ${event.dateTime == null ? 'none' : dateFormat.format(event.dateTime!.toDate())}\n"
+                              "Slots Available: ${event.slotsAvailable}\n"
+                              "Host: ${event.hostName}",
+                            ),
+                            isThreeLine: true,
+                            trailing: getListViewActionButton(event)),
                       );
                     },
                   ),
                   // Change location button section
                   const SizedBox(height: 16),
-                  const Text("Want to search for events in another location?"),
-                  TextButton(
-                    onPressed: () async {
-                      // Show dialog to change address
-                      await _locationBloc.showChangeLocationDialog(
-                          context: context);
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 60),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                            "Want to search for events in another location?"),
+                        TextButton(
+                          onPressed: () async {
+                            // Show dialog to change address
+                            await _locationBloc.showChangeLocationDialog(
+                                context: context);
 
-                      // Refresh UI
-                      setState(() {});
-                    },
-                    child: const Text('Change location'),
-                  ),
+                            // Refresh UI
+                            setState(() {});
+                          },
+                          child: const Text('Change location'),
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
             );
@@ -278,13 +289,14 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
 
     if ((event.slotsAvailable ?? 0) <= 0) {
       // Display label to say the game is full
-      return Text(
+      return const Text(
         "Full",
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
+        style: TextStyle(color: CustomColors.lightError),
       );
     }
 
-    if (event.registeredUsers?.contains(_authenticationBloc.sportUser!.uuid) ?? false) {
+    if (event.registeredUsers?.contains(_authenticationBloc.sportUser!.uuid) ??
+        false) {
       // Display label that the user already registered to this game.
       return const Text("You're going!");
     }
