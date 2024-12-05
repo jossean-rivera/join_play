@@ -157,34 +157,6 @@ class FirebaseService {
       return 'There was an error while trying to unregister. Please try again.';
     }
   }
-  Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
-  try {
-    final eventDocRef = _firestore.collection('events-collection').doc(eventId);
-    final userDocRef = _firestore.collection('users').doc(userId);
-
-    // Update the registeredUsers array in events-collection and increment slotsAvailable
-    await eventDocRef.update({
-      'registeredUsers': FieldValue.arrayRemove([userId]), // Still stored as string in events-collection
-      'slotsAvailable': FieldValue.increment(1), // Increment available slots
-    });
-
-    // Query the registration collection for entries with matching DocumentReferences
-    final registrationQuery = await _firestore
-        .collection('registration')
-        .where('eventId', isEqualTo: eventDocRef) // Compare as DocumentReference
-        .where('userId', isEqualTo: userDocRef)   // Compare as DocumentReference
-        .get();
-
-    // Delete the matching registration document(s)
-    for (var doc in registrationQuery.docs) {
-      await doc.reference.delete(); // Delete registration document
-    }
-
-    print('User $userId successfully unregistered from event $eventId');
-  } catch (e) {
-    print('Error unregistering from event: $e');
-  }
-}
 
 Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
   try {
