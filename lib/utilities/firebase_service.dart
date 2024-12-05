@@ -129,7 +129,7 @@ class FirebaseService {
     }
   }
 
-  Future<void> unregisterFromEvent(String eventId, String userId) async {
+  Future<String?> unregisterFromEvent(String eventId, String userId) async {
   try {
     final eventDocRef = _firestore.collection('events-collection').doc(eventId);
     final userDocRef = _firestore.collection('users').doc(userId);
@@ -150,8 +150,8 @@ class FirebaseService {
     // Delete the matching registration document(s)
     for (var doc in registrationQuery.docs) {
       await doc.reference.delete(); // Delete registration document
+      return null;
     }
-
     print('User $userId successfully unregistered from event $eventId');
   } catch (e) {
     print('Error unregistering from event: $e');
@@ -389,15 +389,4 @@ Future<void> uploadProfilePicture(String userId, String filePath) async {
     // Delete user authentication
     await FirebaseAuth.instance.currentUser?.delete();
   }
-
-
-
 }
-
-
-
-
-
-
-
-
