@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
 import 'package:join_play/blocs/authentication/location/location_bloc.dart';
+import 'package:join_play/custom_theme_data.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/navigation/route_names.dart';
 
@@ -36,6 +38,8 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   bool showUnavailable = false;
 
   late LocationBloc _locationBloc;
+  late AuthenticationBloc _authenticationBloc;
+  final DateFormat dateFormat = DateFormat('MM/dd/yyyy HH:mm');
 
   // Radius for the events to display
   static const double _radiusInKM = 100;
@@ -50,6 +54,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   @override
   void initState() {
     _locationBloc = BlocProvider.of<LocationBloc>(context);
+    _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     super.initState();
   }
 
@@ -145,80 +150,41 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                       return Card(
                         margin: const EdgeInsets.all(8.0),
                         child: ListTile(
-                          title: Text(event.name ?? ''),
-                          subtitle: Text(
-                            "Location: ${event.location}\n"
-                            "Time: ${event.dateTime?.toDate()}\n"
-                            "Slots Available: ${event.slotsAvailable}\n"
-                            "Host: ${event.hostName}",
-                          ),
-                          isThreeLine: true,
-                          trailing: (event.slotsAvailable ?? 0) > 0
-                              ? FilledButton(
-                                  onPressed: () async {
-                                    if (isRegistered) {
-                                      String? error = await widget.firebaseService
-                                          .unregisterFromEvent(event.id!, currentUserId);
-
-                                      String message = error ?? "Unregistered from ${event.name}";
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(message)),
-                                      );
-                                      setState(() {});
-                                    } else {
-                                      await widget.firebaseService
-                                            .registerForEvent(
-                                          event.id!, // Event ID
-                                          widget.authenticationBloc.sportUser!
-                                              .uuid, // Logged-in user ID
-                                        );
-
-                                        // Go to the confirmation page with animation
-                                        GoRouter.of(context).goNamed(
-                                          RouteNames.registrationConfirmation,
-                                          pathParameters: {
-                                            'sportId': event.sportId!
-                                          },
-                                        );
-                                      }
-                                    },
-                                    
-                                  child: Text(
-                                    isRegistered? "Unregister" : "Register",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary),
-                                  ),
-                                )
-                              : Text(
-                                  "Full",
-                                  style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.error),
-                                ),
-                        ),
+                            title: Text(event.name ?? ''),
+                            subtitle: Text(
+                              "Location: ${event.location}\n"
+                              "Time: ${event.dateTime == null ? 'none' : dateFormat.format(event.dateTime!.toDate())}\n"
+                              "Slots Available: ${event.slotsAvailable}\n"
+                              "Host: ${event.hostName}",
+                            ),
+                            isThreeLine: true,
+                            trailing: getListViewActionButton(event)),
                       );
                     },
                   ),
                   // Change location button section
                   const SizedBox(height: 16),
-                  const Text("Want to search for events in another location?"),
-                  TextButton(
-                    onPressed: () async {
-                      // Show dialog to change address
-                      await _locationBloc.showChangeLocationDialog(
-                          context: context);
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 60),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                            "Want to search for events in another location?"),
+                        TextButton(
+                          onPressed: () async {
+                            // Show dialog to change address
+                            await _locationBloc.showChangeLocationDialog(
+                                context: context);
 
-                      // Refresh UI
-                      setState(() {});
-                    },
-                    child: const Text('Change location'),
-                  ),
+                            // Refresh UI
+                            setState(() {});
+                          },
+                          child: const Text('Change location'),
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
             );
@@ -319,5 +285,53 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
     }
 
     return false;
+  }
+
+  /// Gets the action button for the list view of the sports event based on the state of the event.
+  Widget getListViewActionButton(SportEvent event) {
+    final selfHosting =
+        event.hostUserId?.id == _authenticationBloc.sportUser!.uuid;
+
+    if (selfHosting) {
+      // Display label for the events the current using is already hosting.
+      return const Text("You're hosting");
+    }
+
+    if ((event.slotsAvailable ?? 0) <= 0) {
+      // Display label to say the game is full
+      return const Text(
+        "Full",
+        style: TextStyle(color: CustomColors.lightError),
+      );
+    }
+
+    if (event.registeredUsers?.contains(_authenticationBloc.sportUser!.uuid) ??
+        false) {
+      // Display label that the user already registered to this game.
+      return const Text("You're going!");
+    }
+
+    // Return a butotn that allows the user to register to the game.
+    return FilledButton(
+      onPressed: () async {
+        await widget.firebaseService.registerForEvent(
+          event.id!, // Event ID
+          widget.authenticationBloc.sportUser!.uuid, // Logged-in user ID
+        );
+
+        // Go to the confirmation page with animation
+        GoRouter.of(context).goNamed(
+          RouteNames.registrationConfirmation,
+          pathParameters: {'sportId': event.sportId!},
+        );
+      },
+      child: Text(
+        "Register",
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+      ),
+    );
   }
 }
