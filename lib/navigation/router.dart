@@ -25,18 +25,18 @@ final GlobalKey<NavigatorState> shellNavigatorKey =
 
 GoRouter createRouter(AuthenticationBloc authenticationBloc) {
   return GoRouter(
-    initialLocation: RoutePaths.login, // Set the login page as the stating page
+    initialLocation: RoutePaths.login, // Set the login page as the starting page
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
-      //  Check if the current bloc state is for logging out
+      // Check if the current bloc state is for logging out
       if (authenticationBloc.state is AuthenticationLoggedOut) {
-        //  If the user is not on the login page, then redirect the user to /login
+        // If the user is not on the login page, then redirect the user to /login
         if (state.fullPath?.startsWith(RoutePaths.login) != true) {
           return RoutePaths.login;
         }
       } else if (authenticationBloc.state is AuthenticationLoggedIn) {
-        //  If the event for logging in raise, and the user is in the login page,
-        //  then redirect to the home page
+        // If the event for logging in is raised and the user is on the login page,
+        // then redirect to the home page
         if (state.fullPath?.startsWith(RoutePaths.login) == true) {
           return RoutePaths.sports;
         }
@@ -103,12 +103,19 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.myGames,
             name: RouteNames.myGames,
-            builder: (context, state) => const MyGamesPage(),
+            builder: (context, state) => MyGamesPage(
+              firebaseService: context.read<FirebaseService>(),
+              authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
+            ),
           ),
           GoRoute(
             path: RoutePaths.history,
             name: RouteNames.history,
-            builder: (context, state) => const HistoryPage(),
+            builder: (context, state) =>  HistoryPage(
+              firebaseService: context.read<FirebaseService>(),
+              authenticationBloc: context.read<AuthenticationBloc>(),
+
+            ),
           ),
           GoRoute(
             path: RoutePaths.profile,
