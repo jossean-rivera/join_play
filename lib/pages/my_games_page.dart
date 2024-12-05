@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
 import 'package:join_play/models/sport_event.dart';
+import 'package:join_play/navigation/router.dart';
 import 'package:join_play/utilities/firebase_service.dart';
+import 'package:join_play/navigation/route_names.dart';
+import 'package:go_router/go_router.dart';
 
 class MyGamesPage extends StatefulWidget {
   final FirebaseService firebaseService;
@@ -19,6 +22,14 @@ class MyGamesPage extends StatefulWidget {
 
 class _MyGamesPageState extends State<MyGamesPage> {
   bool showHostedEvents = false; // Toggle between registered and hosted events
+
+  void _navigateToEditForm(BuildContext context, SportEvent event) {
+    context.goNamed(
+      RouteNames.gameForm,
+      pathParameters: {'sportId':event.sportId!},
+      extra: event,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +105,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                             trailing: showHostedEvents
                                 ? ElevatedButton(
                                     onPressed: () {
+                                      _navigateToEditForm(context, event);
                                       // Placeholder for future edit functionality
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
