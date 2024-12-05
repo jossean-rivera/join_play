@@ -157,14 +157,15 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                               ? FilledButton(
                                   onPressed: () async {
                                     if (isRegistered) {
-                                      await widget.firebaseService
+                                      String? error = await widget.firebaseService
                                           .unregisterFromEvent(event.id!, currentUserId);
-                                      setState(() {});
+
+                                      String message = error ?? "Unregistered from ${event.name}";
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                            content: Text(
-                                                "Unregistered from ${event.name}")),
+                                            content: Text(message)),
                                       );
+                                      setState(() {});
                                     } else {
                                       await widget.firebaseService
                                             .registerForEvent(

@@ -24,7 +24,8 @@ class _MyGamesPageState extends State<MyGamesPage> {
     final userId = widget.authenticationBloc.sportUser?.uuid ?? '';
 
     return FutureBuilder<List<SportEvent>>(
-      future: widget.firebaseService.getUserRegisteredEvents(userId, true), // Fetch future events
+      future: widget.firebaseService
+          .getUserRegisteredEvents(userId, true), // Fetch future events
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -49,12 +50,16 @@ class _MyGamesPageState extends State<MyGamesPage> {
                   ),
                   trailing: ElevatedButton(
                     onPressed: () async {
-                      await widget.firebaseService.unregisterFromEvent(
+                      String? error =
+                          await widget.firebaseService.unregisterFromEvent(
                         event.id!,
                         userId,
                       );
+                      String message =
+                          error ?? "Unregistered from ${event.name}";
+
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Unregistered from ${event.name}")),
+                        SnackBar(content: Text(message)),
                       );
 
                       // Refresh the UI

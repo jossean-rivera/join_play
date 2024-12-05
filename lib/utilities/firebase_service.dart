@@ -107,7 +107,7 @@ class FirebaseService {
     }
   }
 
-  Future<void> unregisterFromEvent(String eventId, String userId) async {
+  Future<String?> unregisterFromEvent(String eventId, String userId) async {
     try {
       // Reference to the event document
       final eventDoc = _firestore.collection('events-collection').doc(eventId);
@@ -129,9 +129,10 @@ class FirebaseService {
         await doc.reference.delete(); // Delete registration document
       }
 
-      print('User $userId successfully unregistered from event $eventId');
+      return null;
     } catch (e) {
-      print('Error unregistering from event: $e');
+      debugPrint("Failed to unregister user $userId from event $eventId. Error: $e");
+      return 'There was an error while trying to unregister. Please try again.';
     }
   }
   Future<List<SportEvent>> getUserRegisteredEvents(String userId, bool showFutureEvents) async {
