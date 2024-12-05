@@ -13,6 +13,7 @@ import '../pages/game_form.dart';
 import '../repositories/addresses_repository.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
+import '../models/sport_event.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
 import 'scaffold_with_nav_bar.dart';
@@ -88,12 +89,14 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                       name: RouteNames.gameForm,
                       builder: (context, state) {
                         final sportId = state.pathParameters['sportId']!;
+                        final existingEvent = state.extra as SportEvent?;
                         return GameFormPage(
                           sportId: sportId,
                           firebaseService: context.read<FirebaseService>(),
                           authenticationBloc:
                               BlocProvider.of<AuthenticationBloc>(context),
                           addressesRepository: context.read<AddressesRepository>(),
+                          existingEvent: existingEvent,
                         );
                       },
                     ),
@@ -120,7 +123,10 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.profile,
             name: RouteNames.profile,
-            builder: (context, state) => const ProfilePage(),
+            builder: (context, state) => ProfilePage(
+              firebaseService: context.read<FirebaseService>(), // Pass the FirebaseService
+              authenticationBloc: context.read<AuthenticationBloc>(),
+            ),
           ),
         ],
       ),

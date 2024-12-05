@@ -8,23 +8,52 @@ import 'route_paths.dart';
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
   final String title;
-  const ScaffoldWithNavBar(
-      {super.key, required this.child, required this.title});
+  const ScaffoldWithNavBar({
+    super.key,
+    required this.child,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final iconSize = mediaQuery.size.width > 600 ? 32.0 : 24.0; // Adjust icon size based on screen width
+    final fontSize = mediaQuery.size.width > 600 ? 14.0 : 12.0; // Adjust font size
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(
+          title,
+          style: TextStyle(fontSize: fontSize * 2.5), // Responsive title size
+        ),
       ),
-      body: child,
+      body: SafeArea(
+        child: Padding(
+          padding: isLandscape
+              ? const EdgeInsets.symmetric(horizontal: 32.0)
+              : const EdgeInsets.symmetric(horizontal: 16.0),
+          child: child,
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.sports), label: "Sports"),
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.verified_user_outlined), label: "My Games"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Profile"),
+            icon: Icon(Icons.sports, size: iconSize),
+            label: "Sports",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.verified_user_outlined, size: iconSize),
+            label: "My Games",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history, size: iconSize),
+            label: "History",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings, size: iconSize),
+            label: "Profile",
+          ),
         ],
         currentIndex: _getCurrentIndex(context),
         onTap: (index) {
@@ -32,6 +61,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
         },
         selectedItemColor: CustomColors.babyBlue, // Set your desired color
         unselectedItemColor: Colors.grey, // Set your desired unselected color
+        selectedFontSize: fontSize,
+        unselectedFontSize: fontSize,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }

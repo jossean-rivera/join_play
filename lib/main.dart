@@ -19,6 +19,8 @@ import 'repositories/user_repository.dart';
 import 'utilities/firebase_service.dart';
 // ignore: unused_import
 import 'pages/location_page.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +52,7 @@ class MyApp extends StatelessWidget {
               FirestoreUserRepository(FirebaseFirestore.instance),
         ),
         RepositoryProvider(
-            create: (context) => FirebaseService(FirebaseFirestore.instance)),
+            create: (context) => FirebaseService(FirebaseFirestore.instance,FirebaseStorage.instance)),
         RepositoryProvider(create: (context) => AddressesRepository())
       ],
       child: MultiBlocProvider(
