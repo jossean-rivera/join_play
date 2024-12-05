@@ -108,13 +108,6 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     onPressed: () {
                                       _navigateToEditForm(context, event);
                                       // Placeholder for future edit functionality
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              "Host options for ${event.name}"),
-                                        ),
-                                      );
                                     },
                                     child: const Text("Edit Event"),
                                   )
@@ -138,7 +131,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                       setState(() {});
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: CustomColors.lightError,
                                     ),
                                     child: const Text("Unregister"),
                                   ),
