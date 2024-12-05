@@ -64,7 +64,8 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      await widget.firebaseService.uploadProfilePicture(userId, pickedFile.path);
+      await widget.firebaseService
+          .uploadProfilePicture(userId, pickedFile.path);
       await _loadUserProfile();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile picture updated!")),
@@ -132,6 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   controller: nameController,
                   decoration: const InputDecoration(labelText: "Name"),
                 ),
+                const SizedBox(height: 32),
                 TextField(
                   controller: emailController,
                   decoration: const InputDecoration(labelText: "Email"),
@@ -140,11 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
+            FilledButton(
               onPressed: () async {
                 final newName = nameController.text.trim();
                 final newEmail = emailController.text.trim();
@@ -175,6 +173,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
               },
               child: const Text("Save"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -293,14 +295,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 20),
                 // User Details Section
-                Text(userName, style: Theme.of(context).textTheme.headlineSmall),
+                Text(userName,
+                    style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 5),
                 Text(userEmail, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 20),
                 // Edit Profile Button
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: FilledButton(
                     onPressed: _editProfileDetails,
                     child: const Text("Edit Profile"),
@@ -309,7 +313,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Delete Account Button
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: FilledButton(
                     onPressed: _deleteAccount,
                     child: const Text("Delete Account"),
@@ -318,10 +323,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Logout Button
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: FilledButton(
                     onPressed: () {
-                      widget.authenticationBloc.add(AuthenticationLogoutEvent());
+                      widget.authenticationBloc
+                          .add(AuthenticationLogoutEvent());
                     },
                     child: const Text("Log Out"),
                   ),
