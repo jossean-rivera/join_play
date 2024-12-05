@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:join_play/blocs/authentication/bloc/authentication_bloc.dart';
+import 'package:join_play/custom_theme_data.dart';
 import 'package:join_play/models/sport_event.dart';
 import 'package:join_play/utilities/firebase_service.dart';
 
@@ -60,7 +61,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                       setState(() {});
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: CustomColors.lightError,
                     ),
                     child: const Text("Unregister"),
                   ),
