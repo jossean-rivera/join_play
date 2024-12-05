@@ -68,47 +68,54 @@ class SportEvent {
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'sportId': sportId,
-      'dateTime': dateTime,
-      'hostUserId': hostUserId,
-      'name': name,
-      'positionsRequired': positionsRequired,
-      'registeredUsers': registeredUsers,
-      'slotsAvailable': slotsAvailable,
-      'totalSlots': totalSlots,
-      'location': location,
-      'locationTitle': locationTitle,
-      'locationLatitude': locationLatitude,
-      'locationLongitude': locationLongitude,
-    };
-  }
-
   factory SportEvent.fromMap(Map<String, dynamic> map) {
-    return SportEvent(
-      id: map['id'] != null ? map['id'] as String : null,
-      sportId: map['sportId'] != null ? map['sportId'] as String : null,
-      dateTime: map['dateTime'] != null
-          ? (map['dateTime'] is Timestamp
-              ? map['dateTime'] as Timestamp
-              : Timestamp.fromMillisecondsSinceEpoch(map['dateTime'] as int))
-          : null,
-      hostUserId: map['hostUserId'] != null
-          ? (map['hostUserId'] as DocumentReference)
-          : null, // Directly assigned if DocumentReference
-      name: map['name'] != null ? map['name'] as String : null,
-      positionsRequired: map['positionsRequired'] != null ? List<String>.from(map['positionsRequired'] as List) : null,
-      registeredUsers: map['registeredUsers'] != null ? List<String>.from(map['registeredUsers'] as List) : null,
-      slotsAvailable: map['slotsAvailable'] != null ? map['slotsAvailable'] as int : null,
-      totalSlots: map['totalSlots'] != null ? map['totalSlots'] as int : null,
-      location: map['location'] != null ? map['location'] as String : null,
-      locationTitle: map['locationTitle'] != null ? map['locationTitle'] as String : null,
-      locationLatitude: map['locationLatitude'] != null ? map['locationLatitude'] as double : null,
-      locationLongitude: map['locationLongitude'] != null ? map['locationLongitude'] as double : null,
-    );
-  }
+  return SportEvent(
+    id: map['id'] as String?,
+    sportId: map['sportId'] as String?,
+    dateTime: map['dateTime'] as Timestamp?,
+    hostUserId: map['hostUserId'] is DocumentReference
+        ? map['hostUserId'] as DocumentReference
+        : null,
+    name: map['name'] as String?,
+    positionsRequired: map['positionsRequired'] != null
+        ? List<String>.from(map['positionsRequired'] as List)
+        : null,
+    registeredUsers: map['registeredUsers'] != null
+        ? List<String>.from((map['registeredUsers'] as List).map((e) {
+            return e is DocumentReference ? e.path : e.toString();
+          }))
+        : null,
+    slotsAvailable: map['slotsAvailable'] as int?,
+    totalSlots: map['totalSlots'] as int?,
+    location: map['location'] as String?,
+    locationTitle: map['locationTitle'] as String?,
+    locationLatitude: map['locationLatitude'] as double?,
+    locationLongitude: map['locationLongitude'] as double?,
+  );
+}
+
+Map<String, dynamic> toMap() {
+  return {
+    'id': id,
+    'sportId': sportId,
+    'dateTime': dateTime,
+    'hostUserId': hostUserId, // Already a DocumentReference
+    'name': name,
+    'positionsRequired': positionsRequired,
+    'registeredUsers': registeredUsers?.map((e) {
+      return e.startsWith('/') // Check if it's a document path
+          ? FirebaseFirestore.instance.doc(e)
+          : e;
+    }).toList(),
+    'slotsAvailable': slotsAvailable,
+    'totalSlots': totalSlots,
+    'location': location,
+    'locationTitle': locationTitle,
+    'locationLatitude': locationLatitude,
+    'locationLongitude': locationLongitude,
+  };
+}
+
 
   String toJson() => json.encode(toMap());
 
