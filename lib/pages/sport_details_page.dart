@@ -33,6 +33,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   bool showUnavailable = false;
 
   late LocationBloc _locationBloc;
+  late AuthenticationBloc _authenticationBloc;
 
   // Radius for the events to display
   static const double _radiusInKM = 100;
@@ -47,6 +48,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
   @override
   void initState() {
     _locationBloc = BlocProvider.of<LocationBloc>(context);
+    _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     super.initState();
   }
 
@@ -143,41 +145,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
                             "Host: ${event.hostName}",
                           ),
                           isThreeLine: true,
-                          trailing: (event.slotsAvailable ?? 0) > 0
-                              ? FilledButton(
-                                  onPressed: () async {
-                                    await widget.firebaseService
-                                        .registerForEvent(
-                                      event.id!, // Event ID
-                                      widget.authenticationBloc.sportUser!
-                                          .uuid, // Logged-in user ID
-                                    );
-
-                                    // Go to the confirmation page with animation
-                                    GoRouter.of(context).goNamed(
-                                      RouteNames.registrationConfirmation,
-                                      pathParameters: {
-                                        'sportId': event.sportId!
-                                      },
-                                    );
-                                  },
-                                  child: Text(
-                                    "Register",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary),
-                                  ),
-                                )
-                              : Text(
-                                  "Full",
-                                  style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.error),
-                                ),
+                          trailing: getListViewActionButton(event)
                         ),
                       );
                     },
@@ -296,5 +264,52 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
     }
 
     return false;
+  }
+
+  /// Gets the action button for the list view of the sports event based on the state of the event.
+  Widget getListViewActionButton(SportEvent event) {
+    final selfHosting =
+        event.hostUserId?.id == _authenticationBloc.sportUser!.uuid;
+
+    if (selfHosting) {
+      // Display label for the events the current using is already hosting.
+      return const Text("You're hosting");
+    }
+
+    if ((event.slotsAvailable ?? 0) <= 0) {
+      // Display label to say the game is full
+      return Text(
+        "Full",
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      );
+    }
+
+    if (event.registeredUsers?.contains(_authenticationBloc.sportUser!.uuid) ?? false) {
+      // Display label that the user already registered to this game.
+      return const Text("You're going!");
+    }
+
+    // Return a butotn that allows the user to register to the game.
+    return FilledButton(
+      onPressed: () async {
+        await widget.firebaseService.registerForEvent(
+          event.id!, // Event ID
+          widget.authenticationBloc.sportUser!.uuid, // Logged-in user ID
+        );
+
+        // Go to the confirmation page with animation
+        GoRouter.of(context).goNamed(
+          RouteNames.registrationConfirmation,
+          pathParameters: {'sportId': event.sportId!},
+        );
+      },
+      child: Text(
+        "Register",
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+      ),
+    );
   }
 }
