@@ -148,7 +148,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       {required BuildContext context, Function? onCancel}) {
     return showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (context) {
           final GlobalKey<FormState> formKey = GlobalKey<FormState>();
           final TextEditingController textController = TextEditingController();
