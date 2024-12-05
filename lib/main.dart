@@ -28,6 +28,10 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Show test ID for firebase notifications
+  var id = await FirebaseInstallations.id;
+  debugPrint('Testing ID: $id');
+
   /**
    * Testing page for getting the device's location and display coordinates
    * and calculate the distance between the current location and a given address.
