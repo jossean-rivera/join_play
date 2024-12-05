@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:join_play/navigation/route_names.dart';
+import 'package:join_play/widgets/animated_filled_button.dart';
 import 'package:rive/rive.dart';
 import 'package:confetti/confetti.dart';
 
@@ -141,15 +142,30 @@ class _RegistrationConfirmationPageState
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    FilledButton(
-                      onPressed: () {
+                    AnimatedFilledButton(
+                      onPressedOrCompleted: () {
                         context
                             .goNamed(RouteNames.myGames); // Navigate to /myGame
                       },
-                      child: const Text('Check my games'),
+                      buttonChild: Text('Check my games',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary, fontSize: 24)),
+                      width: 200,
+                      height: 50,
+                      duration: const Duration(seconds: 7, milliseconds: 500),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.5),
+                      progressColor: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 24),
-                    Text('Looking for more game?', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Looking for more game?',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     TextButton(
                       onPressed: () {
                         context
