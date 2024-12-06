@@ -138,7 +138,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                       setState(() {});
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: CustomColors.darkError,
                                     ),
                                     child: const Text("Unregister"),
                                   ),
