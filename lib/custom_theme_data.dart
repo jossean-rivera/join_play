@@ -105,3 +105,50 @@ ThemeData customThemeData = ThemeData(
                 fontSize: 20,
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.normal)))));
+
+class CustomTheme {
+  // Function to generate a 3D Text Widget
+  static Widget threeDText({
+    required String text,
+    required double fontSize,
+    required Color textColor,
+    required Color shadowColor,
+    double shadowOffsetX = 3,
+    double shadowOffsetY = 3,
+    double blurRadius = 4,
+  }) {
+    return Stack(
+      children: [
+        // Shadow Layer
+        Positioned(
+          left: shadowOffsetX,
+          top: shadowOffsetY,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: shadowColor, // Shadow color
+            ),
+          ),
+        ),
+        // Main Text Layer
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: textColor, // Main text color
+            shadows: [
+              Shadow(
+                offset: Offset(shadowOffsetX, shadowOffsetY),
+                blurRadius: blurRadius,
+                color: shadowColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

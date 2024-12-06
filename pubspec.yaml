@@ -94,6 +94,7 @@ flutter:
     - assets/images/tennis.jpg
     - assets/images/softball.jpg
     - assets/images/golf.jpg
+    - assets/images/balls/basketball.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
