@@ -131,4 +131,10 @@ class _AnimatedFilledButtonState extends State<AnimatedFilledButton>
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 }

@@ -23,11 +23,8 @@ class _HistoryPageState extends State<HistoryPage> {
     final userId = widget.authenticationBloc.sportUser?.uuid ?? '';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Past Events"),
-      ),
       body: FutureBuilder<List<SportEvent>>(
-        future: widget.firebaseService.getUserPastEvents(userId),
+        future: widget.firebaseService.getUserPastEvents(userId), // Updated for DocumentReference logic
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

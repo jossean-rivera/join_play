@@ -13,9 +13,11 @@ import '../pages/game_form.dart';
 import '../repositories/addresses_repository.dart';
 import '../utilities/firebase_service.dart';
 import '../utilities/stream_to_listenable.dart';
+import '../models/sport_event.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
 import 'scaffold_with_nav_bar.dart';
+import '../pages/splashscreen.dart';
 
 // Keys for showing/hiding the bottom bar
 final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -25,16 +27,19 @@ final GlobalKey<NavigatorState> shellNavigatorKey =
 
 GoRouter createRouter(AuthenticationBloc authenticationBloc) {
   return GoRouter(
-    initialLocation: RoutePaths.login, // Set the login page as the starting page
+    initialLocation: RoutePaths.splashScreen, // Set the login page as the starting page
     refreshListenable: StreamToListenable([authenticationBloc.stream]),
     redirect: (context, state) {
+      if (state.uri.path == '/splashScreen'){
+        return null;
+        }
       // Check if the current bloc state is for logging out
-      if (authenticationBloc.state is AuthenticationLoggedOut) {
+      if (authenticationBloc.state is AuthenticationLoggedOut && state.fullPath?.startsWith(RoutePaths.login) !=true ) {
         // If the user is not on the login page, then redirect the user to /login
         if (state.fullPath?.startsWith(RoutePaths.login) != true) {
           return RoutePaths.login;
         }
-      } else if (authenticationBloc.state is AuthenticationLoggedIn) {
+      } else if (authenticationBloc.state is AuthenticationLoggedIn && state.fullPath?.startsWith(RoutePaths.login) == true) {
         // If the event for logging in is raised and the user is on the login page,
         // then redirect to the home page
         if (state.fullPath?.startsWith(RoutePaths.login) == true) {
@@ -46,6 +51,11 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
     },
     navigatorKey: rootNavigatorKey,
     routes: [
+      GoRoute(
+        path: RoutePaths.splashScreen,
+        name: RouteNames.splashScreen,
+        builder: (context, state) => SplashScreen(), 
+      ),
       GoRoute(
         path: RoutePaths.login,
         name: RouteNames.login,
@@ -88,12 +98,14 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
                       name: RouteNames.gameForm,
                       builder: (context, state) {
                         final sportId = state.pathParameters['sportId']!;
+                        final existingEvent = state.extra as SportEvent?;
                         return GameFormPage(
                           sportId: sportId,
                           firebaseService: context.read<FirebaseService>(),
                           authenticationBloc:
                               BlocProvider.of<AuthenticationBloc>(context),
                           addressesRepository: context.read<AddressesRepository>(),
+                          existingEvent: existingEvent,
                         );
                       },
                     ),
@@ -120,7 +132,10 @@ GoRouter createRouter(AuthenticationBloc authenticationBloc) {
           GoRoute(
             path: RoutePaths.profile,
             name: RouteNames.profile,
-            builder: (context, state) => const ProfilePage(),
+            builder: (context, state) => ProfilePage(
+              firebaseService: context.read<FirebaseService>(), // Pass the FirebaseService
+              authenticationBloc: context.read<AuthenticationBloc>(),
+            ),
           ),
         ],
       ),

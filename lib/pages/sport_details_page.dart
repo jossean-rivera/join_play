@@ -17,6 +17,12 @@ import '../blocs/authentication/location/location_event.dart';
 import '../utilities/firebase_service.dart';
 import 'package:join_play/models/sport_user.dart';
 
+String toCamelCase(String text) {
+  if (text.isEmpty) return text;
+  return text[0].toUpperCase() + text.substring(1);
+}
+
+
 class SportDetailsPage extends StatefulWidget {
   final String sportId;
   final FirebaseService firebaseService;
@@ -63,7 +69,7 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.sportId,
+          toCamelCase(widget.sportId),
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         actions: [
@@ -145,8 +151,9 @@ class _SportDetailsPageState extends State<SportDetailsPage> {
 
                       // Check if the user is registered for this event
                       final isRegistered =
-                          event.registeredUsers?.contains(currentUserId) ?? false;
-                      
+                          event.registeredUsers?.contains(currentUserId) ??
+                              false;
+
                       return Card(
                         margin: const EdgeInsets.all(8.0),
                         child: ListTile(
